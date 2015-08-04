@@ -54,12 +54,10 @@ else:
 	COLS = 5
 	ROWS = 3
 	name = platform.node()
-	print not name.startswith('tile-')
 	ip = "10.10.0.255"
+	port = 5000
 	if name == 'master':
 		master.setup(ip, port, (TOTAL_WIDTH, TOTAL_HEIGHT), mini_display)
-	elif True:
-		'pong running on odd computer'
 	else:
 		xcoord = int(name[5])
 		ycoord = int(name[7])
