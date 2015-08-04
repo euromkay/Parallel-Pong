@@ -12,7 +12,7 @@ def wall_hit(window):
     pygame.mixer.music.load(wall_song)
     pygame.mixer.music.play()
 
-def won_sound(window):
-    point_song = 'home/pi/point_song.mp3'
-    pygame.mixer.music.load(point_song)
-    pygame.mixer.music.play()
+#def won_sound(window):
+ #   point_song = 'home/pi/point_song.mp3'
+  #  pygame.mixer.music.load(point_song)
+   # pygame.mixer.music.play()
