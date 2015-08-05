@@ -1,3 +1,5 @@
+python pong.py &
+
 cat comp.sh | ssh tile-0-0
 cat comp.sh | ssh tile-0-1
 cat comp.sh | ssh tile-0-2
