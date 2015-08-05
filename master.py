@@ -1,5 +1,7 @@
 import pypong, socket, struct, threading, select, time, pygame
+import cPickle as Pickle
 from pypong.player import BasicAIPlayer, Player
+import pongdisplay
 
 player_left = None # set the players as global so the control thread has access
 player_right = None # simplest way to do it
@@ -36,10 +38,10 @@ def setup(ip, port, display, mini_display):
     connections.append(server_socket)
 
     # Prepare game
-    #player_left  = BasicAIPlayer()#None, 'up', 'down')
-    player_left  = Player(None, 'up', 'down')
-    #player_right = BasicAIPlayer()#None, 'up', 'down')
-    player_right = Player(None, 'up', 'down')
+    player_left  = BasicAIPlayer()#None, 'up', 'down')
+    #player_left  = Player(None, 'up', 'down')
+    player_right = BasicAIPlayer()#None, 'up', 'down')
+    #player_right = Player(None, 'up', 'down')
 
     pygame.init()
     pygame.display.set_mode((200,200))
@@ -49,17 +51,26 @@ def setup(ip, port, display, mini_display):
 
     threading.Thread(target = ctrls, args = [game]).start()
 
-
+    i = 0
     # Main game loop
     while game.running:
         findnewConnections(connections, server_socket)
         game.update()
 
-        coordinates = struct.pack('iiii', game.ball.position_vec[0], game.ball.position_vec[1], game.paddle_left.rect.y, game.paddle_right.rect.y )
+        #coordinates = struct.pack('iiii', game.ball.position_vec[0], game.ball.position_vec[1], game.paddle_left.rect.y, game.paddle_right.rect.y )
+        info = [game.ball.position_vec[0], game.ball.position_vec[1], game.paddle_left.rect.y, game.paddle_right.rect.y, game.ball.hit_flag, i]
+        coordinates = ''
+        for x in info:
+            coordinates += str(x) + "-"
+        #coordinates = coordinates[:-1]#Pickle.dumps(, Pickle.HIGHEST_PROTOCOL)# + pongdisplay.SOCKET_DEL
+        i += 1
+        #print coordinates
         # loop over clients and send the coordinates
         for sock in connections:
             if sock is not server_socket:
                 sock.send(coordinates)
+                sock.recv(16)
+        #print '-' + str(i)
 
         # wait for them to send stuff back to avoid a race condition.
         #for x in range( 0,len( clisocket ) ):
@@ -89,6 +100,7 @@ def ctrls(game):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 game.running = False
+                print 'close detected'
                 return
 
             if event.type == pygame.KEYDOWN:

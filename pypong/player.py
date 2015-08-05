@@ -23,12 +23,11 @@ class BasicAIPlayer(object):
             paddle.direction = 0
         paddle.update()
 
-    def hit(self, window):
+    def hit(self):
         self.hit_count += 1
         if self.hit_count > 6:
             self.bias = random.random() - 0.5 # Recalculate our bias, this game is going on forever
             self.hit_count = 0
-        pong_sound.paddle_hit(window)
             
     def lost(self):
         # If we lose, randomise the bias again
@@ -52,8 +51,7 @@ class Player(object):
             paddle.direction = 0
         paddle.update()
 
-    def hit(self, window):
-        pong_sound.paddle_hit(window)
+    def hit(self):
         pass
 
     def lost(self):

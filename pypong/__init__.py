@@ -90,7 +90,9 @@ class Game(object):
                     self.ball.velocity = min(self.configuration['ball_velocity_max'], self.ball.velocity * self.configuration['ball_velocity_bounce_multiplier'])
                     self.ball.velocity_vec[0] = velocity[0] * self.ball.velocity
                     self.ball.velocity_vec[1] = velocity[1] * self.ball.velocity
-                    self.player_left.hit(self.ball.getWindow(self))
+
+                    self.player_left.hit()
+                    self.ball.hit_flag = entity.PADDLE
         else:
             # Right side bullet-through-paper check on ball and paddle.
             if self.ball.velocity_vec[0] > 0:
@@ -111,16 +113,16 @@ class Game(object):
                         self.ball.velocity * self.configuration['ball_velocity_bounce_multiplier'])
                     self.ball.velocity_vec[0] = -velocity[0] * self.ball.velocity
                     self.ball.velocity_vec[1] = velocity[1] * self.ball.velocity
-                    self.player_right.hit(self.ball.getWindow(self))
+                    self.player_right.hit()
         # Bounds collision check
         if self.ball.rect.y < self.bounds.top:
             self.ball.position_y = float(self.bounds.top)
             self.ball.velocity_vec[1] = -self.ball.velocity_vec[1]
-            pong_sound.wall_hit(self.ball.getWindow(self))
+            self.ball.hit_flag = entity.WALL
         elif self.ball.rect.y > self.bounds.bottom:
             self.ball.position_y = float(self.bounds.bottom)
             self.ball.velocity_vec[1] = -self.ball.velocity_vec[1]
-            pong_sound.wall_hit(self.ball.getWindow(self))
+            self.ball.hit_flag = entity.WALL
         # Check the ball is still in play
         if self.ball.rect.x < self.bounds.x:
             self.player_left.lost()

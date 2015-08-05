@@ -1,5 +1,5 @@
 export DISPLAY=:0
 
 cd shared/Parallel-Pong/
-python pong.py &
+./pong_wrapper.sh
 exit

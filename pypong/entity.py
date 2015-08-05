@@ -1,6 +1,9 @@
 import math
 
 PADDLE_LENGTH = 100
+NONE = 0
+PADDLE = 1
+WALL = 2
 
 #from PIL import Image
 def rect_from_image(path):
@@ -46,6 +49,7 @@ class Ball(object):
         self.rect = Rect( 0, 0, 96, 96 )
         self.position_vec = [0., 0.]
         self.velocity_vec = [0., 0.]
+        self.hit_flag = NONE
         
     def getWindow(self, game):
         display_size = game.configuration['screen_size']
@@ -60,6 +64,7 @@ class Ball(object):
         self.position_vec[1] += self.velocity_vec[1]
         self.rect.x = self.position_vec[0]
         self.rect.y = self.position_vec[1]
+        self.hit_flag = NONE
     
     def set_position_x(self, value):
         self.position_vec[0] = value

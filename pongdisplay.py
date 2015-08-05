@@ -1,22 +1,22 @@
 import pygame
-import sys
-import socket, struct, select, threading
+import sys, os
+import socket, select, threading
+import cPickle as Pickle
 import pypong.entity as entity
-import os
+import pypong.pong_sound as sound
 
 
 BLACK = 0,0,0
 LEFT_PADDLE = 2
 RIGHT_PADDLE = 3
+BUFFER = 4096
+SOCKET_DEL = '*ET*'
 
 #class broadcastServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
     #pass
 #class requestHandler(posvec):
-def handle(posvec, tile):
-    if not tile.active:
-        sys.exit()
+def handle(data, tile):
 
-    data = struct.unpack( 'iiii',posvec )
     tile.screen.fill( BLACK )
     
     paddle_index = tile.paddle_index
@@ -44,6 +44,12 @@ def handle(posvec, tile):
             tile.screen.blit( tile.paddle, paddle_rect )
 
     pygame.display.flip()
+
+    if(data[4] == entity.PADDLE):
+        sound.paddle_hit(tile.mixer)
+    elif(data[4] == entity.WALL):
+        sound.wall_hit(tile.mixer)
+
         #self.request.send( 'Got it' )
         #try:
           #  posvec=self.request.recv( 16 )
@@ -74,6 +80,10 @@ def setup(ip, port, display, total_display, coords = None):
 
     read_pong_settings(display['left'], display['right'], display['bot'], display['top'], tile)
     pygame.mouse.set_visible(False)
+    pygame.mixer.pre_init(frequency=22050, size=-16, channels=2, buffer=2048)
+    pygame.mixer.init()
+
+    tile.mixer = pygame.mixer
 
 
     if ( display['right'] == total_display['right'] ):
@@ -95,7 +105,7 @@ def setup(ip, port, display, total_display, coords = None):
      #   edge_node = False
     pygame.display.flip()
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.settimeout(2)
+    s.settimeout(None)
 
     try :
         s.connect((ip, port))
@@ -104,19 +114,38 @@ def setup(ip, port, display, total_display, coords = None):
         sys.exit()
 
 
-    while 1:
-        read_sockets, _, _ = select.select([s], [], [], 0)
+    data = ''
+    while True:
+        #read_sockets, _, _ = select.select([s], [], [], 0)
+        #for sock in read_sockets:
+        data += s.recv(BUFFER)
+        s.send('gotit')
+        if not data:
+            print 'exiting here'
+            sys.exit()
+        # print 'rdbuff is ' + rdbuf
+        #split = data.split(SOCKET_DEL) # split at newline, as per our custom protocol
+        #if len(split) == 2: # it should be 2 elements big if it got the whole message
 
-        for sock in read_sockets:
-            if tile.active:
-                posvec = sock.recv(16)
-            if not posvec:
-                sys.exit()
-
+        segments = data.split("-")#Pickle.loads(data)
+        while len(segments) >= 7:
+            #print data
+            posvec = [float(segments[0]), float(segments[1]), float(segments[2]), float(segments[3]), int(segments[4]), int(segments[5])]
+            #print posvec
             handle(posvec, tile)
 
+            data = ''
+            for seg in segments[6:]:
+                data += seg + '-'
+            data = data[:-1]
+            segments = data.split("-")
+
+
+
+
+
+
 class Tile:
-    active = True
     isEdge = False
     ball = None
     screen = None
@@ -128,6 +157,7 @@ class Tile:
     left_edge_node = ''
     right_edge_node = ''
     paddle_index = 0
+    mixer = None
 
 
     
