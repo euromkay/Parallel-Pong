@@ -65,9 +65,12 @@ def setup(ip, port, display, mini_display):
         #for x in range( 0,len( clisocket ) ):
             #clisocket[x].recv( 16 )
         
+    pygame.display.quit()
+    pygame.quit()
 
     print 'server is closing'
     server_socket.close()
+    print 'server closed'
 
 def findnewConnections(connections, server_socket):
     read_sockets, write_sockets, error_sockets = select.select(connections,[],[], 0.)

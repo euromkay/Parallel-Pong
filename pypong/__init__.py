@@ -48,8 +48,7 @@ class Game(object):
         
         
     def reset_game(self, serveLeft=True):
-        print 'new game: ' + str(self.count)
-        self.count += 1
+        self.count += 1 #for purposes of keeping score of game
         time.sleep(2)
 
         y = self.configuration['screen_size'][1] - self.ball.rect.height

@@ -54,7 +54,7 @@ else:
 	COLS = 5
 	ROWS = 3
 	name = platform.node()
-	ip = "10.10.0.255"
+	ip = "10.0.0.255"
 	port = 5000
 	if name == 'master':
 		master.setup(ip, port, (TOTAL_WIDTH, TOTAL_HEIGHT), mini_display)
