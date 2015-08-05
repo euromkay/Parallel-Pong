@@ -89,6 +89,7 @@ def ctrls(game):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 game.running = False
+                return
 
             if event.type == pygame.KEYDOWN:
                 player_left.input_state = None
