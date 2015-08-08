@@ -1,5 +1,5 @@
 import pygame
-import sys, os
+import sys, os, time
 import socket, select, threading
 import cPickle as Pickle
 import pypong.entity as entity
@@ -7,55 +7,100 @@ import pypong.pong_sound as sound
 
 
 BLACK = 0,0,0
-LEFT_PADDLE = 2
-RIGHT_PADDLE = 3
-BUFFER = 4096
+LEFT_PADDLE = 5
+RIGHT_PADDLE = 6
+BUFFER = 64
 SOCKET_DEL = '*ET*'
+ELEMENTS_SENT = 8
+
+BALL_X = 0
+BALL_Y = 1
+
+BALL_VX = 2
+BALL_VY = 3
+
+TIME = 4
 
 #class broadcastServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
     #pass
 #class requestHandler(posvec):
-def handle(data, tile):
+def screenDraw(tile):
+    topEdge = tile.topEdge
+    leftEdge = tile.leftEdge
+    rightEdge = tile.rightEdge
+    botEdge = tile.botEdge
 
-    tile.screen.fill( BLACK )
-    
+    print leftEdge, rightEdge, topEdge, botEdge
+
+    ballrect   = tile.ball.get_rect()
+    draw = tile.screen.blit
+    ball = tile.ball
+    paddle_rect  = tile.paddle.get_rect()
+    isEdge = tile.isEdge
+
+
     paddle_index = tile.paddle_index
- 
-    paddleTopEdge = data[paddle_index]
-    paddleBotEdge = paddleTopEdge + entity.PADDLE_LENGTH
+    if tile.paddle_index == RIGHT_PADDLE:
+        paddle_rect.x = rightEdge - (paddle_rect.w + leftEdge)
+
+    while tile.active:
+
+        tile.screen.fill( BLACK )
 
 
-    ballRightEdge = data[0] + 96
-    ballLeftEdge  = data[1]
+        ball_init_x = tile.data[BALL_X]
+        ball_init_y = tile.data[BALL_Y]
+        ball_vel_x = tile.data[BALL_VX]
+        ball_vel_y = tile.data[BALL_VY]
+        prev_time = tile.data[TIME]
+
+        curr_time = time.time()
+        if curr_time > prev_time:
+            print '-----------'
+            #tile.active = False
 
 
-    if ( ballRightEdge > tile.left_edge and ballLeftEdge < tile.right_edge ):
-        ballrect   = tile.ball.get_rect()
-        ballrect.x = data[0] - tile.left_edge # offset the bounds
-        ballrect.y = data[1] - tile.top_edge 
-        tile.screen.blit( tile.ball, ballrect )
+        print ball_init_x
+        ball_leftEdge = ball_init_x + (ball_vel_x*(curr_time - prev_time))
+        ball_rightEdge = ball_leftEdge + 96
 
-    if tile.isEdge:
-        if ( paddleBotEdge > tile.top_edge and paddleTopEdge < tile.bot_edge  ):
-            paddle_rect  = tile.paddle.get_rect()
-            if paddle_index == RIGHT_PADDLE:
-                paddle_rect.x = tile.right_edge - (paddle_rect.w + tile.left_edge)
-            paddle_rect.y = data[paddle_index] - tile.top_edge
-            tile.screen.blit( tile.paddle, paddle_rect )
+        ball_topEdge = ball_init_y + (ball_vel_y*(curr_time - prev_time))
+        ball_botEdge = ball_topEdge + 96
 
-    pygame.display.flip()
 
-    if(data[4] == entity.PADDLE):
-        sound.paddle_hit(tile.mixer)
-    elif(data[4] == entity.WALL):
-        sound.wall_hit(tile.mixer)
+        inWidth = within(leftEdge, ball_leftEdge, rightEdge) or within(leftEdge, ball_rightEdge, rightEdge)
+        print leftEdge, ball_rightEdge, rightEdge
+        inHeight = within(topEdge, ball_topEdge, botEdge) or within(topEdge, ball_botEdge, botEdge)
+
+        print inWidth
+        print inHeight 
+
+        if ( inWidth and inHeight):
+            ballrect.x = ball_leftEdge - leftEdge# offset the bounds
+            ballrect.y = ball_topEdge - topEdge
+
+            draw( ball, ballrect )
+
+        if isEdge:
+            paddleTopEdge = tile.data[paddle_index]
+            paddleBotEdge = paddleTopEdge + entity.Paddle.LENGTH
+            if ( (topEdge < paddleBotEdge and paddleBotEdge < botEdge ) or (botEdge > paddleTopEdge and paddleTopEdge > topEdge)  ):
+                paddle_rect.y = paddleTopEdge - topEdge
+                draw( tile.paddle, paddle_rect )
+
+        pygame.display.flip()
+
+        if(tile.data[4] == entity.PADDLE_RIGHT or tile.data[4] == entity.PADDLE_LEFT):
+            sound.paddle_hit(tile.mixer)
+        elif(tile.data[4] == entity.WALL):
+            sound.wall_hit(tile.mixer)
 
         #self.request.send( 'Got it' )
         #try:
           #  posvec=self.request.recv( 16 )
        # except:
           #  print( 'client disconnect' )
-    #         pygame.quit()
+    #         pygame.quit()s
     #         sys.exit()
     # pygame.quit()
     # sys.exit()
@@ -64,10 +109,10 @@ def read_pong_settings(left_edge, right_edge, bot_edge, top_edge, tile):
     # put in seperate function since it's special. Could have been done easier
     #settings = open( 'Pong Renders/settings.txt', 'r' )
     #line = settings.readline()
-    tile.left_edge = left_edge
-    tile.right_edge = right_edge
-    tile.bot_edge = bot_edge
-    tile.top_edge = top_edge
+    tile.leftEdge = left_edge
+    tile.rightEdge = right_edge
+    tile.botEdge = bot_edge
+    tile.topEdge = top_edge
 
 def setup(ip, port, display, total_display, coords = None):
     if coords != None:
@@ -87,14 +132,12 @@ def setup(ip, port, display, total_display, coords = None):
 
 
     if ( display['right'] == total_display['right'] ):
-        print 'right_edge_node'
         tile.paddle = pygame.image.load( 'assets/paddle.png' )
         paddle_rect = tile.paddle.get_rect()
         tile.isEdge = True #will signal to update paddle as well
         tile.paddle_index = RIGHT_PADDLE
 
     if( display['left'] == total_display['left'] ):
-        print 'left_edge_node'
         tile.paddle = pygame.image.load( 'assets/paddle.png' )
         paddle_rect = tile.paddle.get_rect()
         tile.isEdge = True #will signal to update paddle as well
@@ -113,35 +156,38 @@ def setup(ip, port, display, total_display, coords = None):
         print 'Unable to connect'
         sys.exit()
 
+    threading.Thread(target = screenDraw, args=[tile]).start()
 
     data = ''
-    while True:
+    while tile.active:
         #read_sockets, _, _ = select.select([s], [], [], 0)
         #for sock in read_sockets:
         data += s.recv(BUFFER)
-        s.send('gotit')
         if not data:
             print 'exiting here'
-            sys.exit()
+            return
+        s.send('gotit')
         # print 'rdbuff is ' + rdbuf
         #split = data.split(SOCKET_DEL) # split at newline, as per our custom protocol
         #if len(split) == 2: # it should be 2 elements big if it got the whole message
 
-        segments = data.split("-")#Pickle.loads(data)
-        while len(segments) >= 7:
+        segments = data.split("*")#Pickle.loads(data)
+        while len(segments) >= ELEMENTS_SENT + 1:
             #print data
-            posvec = [float(segments[0]), float(segments[1]), float(segments[2]), float(segments[3]), int(segments[4]), int(segments[5])]
-            #print posvec
-            handle(posvec, tile)
+
+            posvec = []
+            for x in segments[:ELEMENTS_SENT]: #all but last element
+                posvec.append(float(x))
+                
+            posvec.append(int(segments[ELEMENTS_SENT - 1]))
+
+            tile.data = posvec
 
             data = ''
-            for seg in segments[6:]:
-                data += seg + '-'
+            for seg in segments[ELEMENTS_SENT:]:
+                data += seg + '*'
             data = data[:-1]
-            segments = data.split("-")
-
-
-
+            segments = data.split("*")
 
 
 
@@ -149,18 +195,23 @@ class Tile:
     isEdge = False
     ball = None
     screen = None
-    bot_edge = 0
-    top_edge = 0
-    right_edge = 0
-    left_edge = 0
+    botEdge = 0
+    topEdge = 0
+    rightEdge = 0
+    leftEdge = 0
     boundsy = (0, 0)
     left_edge_node = ''
     right_edge_node = ''
     paddle_index = 0
     mixer = None
+    data = [0.0, 0.0, 0.0, 0.0, sys.float_info.max, 0.0, 0.0, 0]
+    active = True
 
 
     
     
         
         
+
+def within(x, a, y):
+    return x < a and a < y

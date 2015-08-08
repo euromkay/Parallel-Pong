@@ -1,9 +1,9 @@
 import math
 
-PADDLE_LENGTH = 100
 NONE = 0
-PADDLE = 1
-WALL = 2
+PADDLE_LEFT = 1
+PADDLE_RIGHT = 2
+WALL = 3
 
 #from PIL import Image
 def rect_from_image(path):
@@ -14,10 +14,11 @@ def rect_from_image(path):
     return rect
 
 class Paddle(object):
+    LENGTH = 100
     def __init__(self, velocity, image_path, bounds_y, *groups):
         #self.image = image
         #self.rect = rect_from_image(image_path)
-        self.rect = Rect( 0, 0, 30, PADDLE_LENGTH)
+        self.rect = Rect( 0, 0, 30, Paddle.LENGTH)
         self.direction = 0
         self.velocity = velocity
         self.bounds_y = bounds_y
@@ -32,14 +33,14 @@ class Paddle(object):
         self.bounce_table = [(math.cos(n*math.pi-math.pi/2.0), math.sin(n*math.pi-math.pi/2.0)) for n in angles]
         
     def update(self):
-        self.rect.y = max(self.bounds_y[0], min(self.bounds_y[1]-self.rect.height, \
-            self.rect.y + self.direction * self.velocity))
+        self.rect.y = max(self.bounds_y[0], min(self.bounds_y[1]-self.rect.height, self.rect.y + self.direction * self.velocity))
 
     def calculate_bounce(self, delta):
         return self.bounce_table[int(round(delta * (len(self.bounce_table)-1)))]
     
 class Line(object):
     def __init__(self, rect, *groups):
+        print 'using line'
         self.rect = rect
 
 class Ball(object):
@@ -47,35 +48,26 @@ class Ball(object):
         self.velocity = velocity
         #self.rect = rect_from_image(image_path)
         self.rect = Rect( 0, 0, 96, 96 )
-        self.position_vec = [0., 0.]
         self.velocity_vec = [0., 0.]
         self.hit_flag = NONE
-        
-    def getWindow(self, game):
-        display_size = game.configuration['screen_size']
-        mini_display_size = game.configuration['individual_screen_size']
-        x = math.ceil(float(display_size[0]) / mini_display_size[0])
-        y = math.ceil(float(display_size[1]) / mini_display_size[1])
-        return str(int(x)) + "-" + str(int(y))
 
 
     def update(self):
-        self.position_vec[0] += self.velocity_vec[0]
-        self.position_vec[1] += self.velocity_vec[1]
-        self.rect.x = self.position_vec[0]
-        self.rect.y = self.position_vec[1]
+        self.rect.x += self.velocity_vec[0]
+        self.rect.y += self.velocity_vec[1]
         self.hit_flag = NONE
-    
-    def set_position_x(self, value):
-        self.position_vec[0] = value
-        self.rect.left = value
-    position_x = property(lambda self: self.position_vec[0], set_position_x)
-        
-    def set_position_y(self, value):
-        self.position_vec[1] = value
-        self.rect.top = value
-    position_y = property(lambda self: self.position_vec[1], set_position_y)
 
+    def print_coords(self):
+        print (self.rect.left, self.rect.right, self.rect.top, self.rect.bottom)
+        print '\t' + str((self.velocity_vec[0], self.velocity_vec[1]))
+    
+    #def set_position_x(self, value):
+        #self.rect.left = value
+    #position_x = property(lambda self: self.position_vec[0], set_position_x)
+        
+    #def set_position_y(self, value):
+        #self.rect.top = value
+    #position_y = property(lambda self: self.position_vec[1], set_position_y)
 
     # left in as is, no attempt was made for scoring yet, other projects
 # class Score(object):
@@ -152,6 +144,7 @@ class Rect( object ):
         self._topright = ( self._right, self._top )
         self._bottomright = ( self._right, self._bottom )
         self._centery = self._y + self.height/2
+
     @property
     def top( self ):
         return self._top

@@ -10,15 +10,17 @@ class BasicAIPlayer(object):
         # Dead simple AI, waits until the ball is on its side of the screen then moves the paddle to intercept.
         # A bias is used to decide which edge of the paddle is going to be favored.
         #paddle.update()
+
+                #paddle left edge to the left
         if (paddle.rect.x < game.bounds.centerx and game.ball.rect.x < game.bounds.centerx) or (paddle.rect.x > game.bounds.centerx and game.ball.rect.x > game.bounds.centerx):
             delta = (paddle.rect.centery + self.bias * paddle.rect.height) - game.ball.rect.centery 
-            if abs(delta) > paddle.velocity:
-                if delta > 0:
-                    paddle.direction = -1
-                else:
-                    paddle.direction = 1
+            #if abs(delta) > paddle.velocity:
+            if delta > 0:
+                paddle.direction = -1
             else:
-                paddle.direction = 0
+                paddle.direction = 1
+            #else:
+            #    paddle.direction = 0
         else:
             paddle.direction = 0
         paddle.update()
