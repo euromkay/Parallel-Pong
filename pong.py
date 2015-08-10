@@ -26,9 +26,9 @@ if local:
 	ip = "0.0.0.0"
 	port = 5000
 
-	rows = int(sys.argv[1])
-	cols = int(sys.argv[2])
-	scale = 5
+	rows  = int(sys.argv[1])
+	cols  = int(sys.argv[2])
+	scale = 1
 	i = 0
 	t = None
 	for w in reversed(range(rows)):

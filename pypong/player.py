@@ -2,28 +2,30 @@ import random
 import pong_sound
 
 class BasicAIPlayer(object):
-    def __init__(self):
+    def __init__(self, paddle):
         self.bias = random.random() - 0.5
         self.hit_count = 0
+        self.paddle = paddle
         
-    def update(self, paddle, game):
+    def update(self, ball_center, bounds):
+        paddle = self.paddle
         # Dead simple AI, waits until the ball is on its side of the screen then moves the paddle to intercept.
         # A bias is used to decide which edge of the paddle is going to be favored.
         #paddle.update()
 
-                #paddle left edge to the left
-        if (paddle.rect.x < game.bounds.centerx and game.ball.rect.x < game.bounds.centerx) or (paddle.rect.x > game.bounds.centerx and game.ball.rect.x > game.bounds.centerx):
-            delta = (paddle.rect.centery + self.bias * paddle.rect.height) - game.ball.rect.centery 
+           #paddle left edge to the left of center   ball left edge
+        if (paddle.rec.left < bounds.centerx and ball_center[0] < bounds.centerx) or (paddle.rec.right > bounds.centerx and ball_center[0] > bounds.centerx):
+            delta = (paddle.rec.centery + self.bias * paddle.rec.height) - ball_center[1]
             #if abs(delta) > paddle.velocity:
             if delta > 0:
-                paddle.direction = -1
-            else:
-                paddle.direction = 1
+                #print '\t move down'
+                return paddle.moveDown()
             #else:
-            #    paddle.direction = 0
-        else:
-            paddle.direction = 0
-        paddle.update()
+            #print '\t move up'
+            return paddle.moveUp()
+        #else:
+        #print '\t is going to hit the paddle, don\'t move it'
+        return paddle.stop()
 
     def hit(self):
         self.hit_count += 1
@@ -39,19 +41,20 @@ class BasicAIPlayer(object):
         pass
         
 class Player(object):
-    def __init__(self, input_state, up_key = None, down_key = None):
-        self.input_state = input_state
-        self.up_key = up_key
-        self.down_key = down_key
+    def __init__(self, paddle):
+        self.paddle = paddle
         
     def update(self, paddle, game):
-        if self.input_state == self.up_key:
-            paddle.direction = -1
-        elif self.input_state == self.down_key:
-            paddle.direction = 1
-        else:
-            paddle.direction = 0
-        paddle.update()
+        if self.paddle.update():
+            game.send
+        #if self.input_state == self.up_key:
+        #    paddle.moveUp()
+        #elif self.input_state == self.down_key:
+        #    paddle.moveDown()
+        #else:
+        #    paddle.stop()
+        #paddle.update()
+        return True
 
     def hit(self):
         pass

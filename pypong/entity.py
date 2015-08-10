@@ -1,4 +1,4 @@
-import math
+import math, time, sys
 
 NONE = 0
 PADDLE_LEFT = 1
@@ -15,13 +15,16 @@ def rect_from_image(path):
 
 class Paddle(object):
     LENGTH = 100
-    def __init__(self, velocity, image_path, bounds_y, *groups):
+    def __init__(self, velocity, image_path, bounds, index, *groups):
         #self.image = image
         #self.rect = rect_from_image(image_path)
-        self.rect = Rect( 0, 0, 30, Paddle.LENGTH)
+        self.rec = Rect( 0, 0, 30, Paddle.LENGTH)
         self.direction = 0
         self.velocity = velocity
-        self.bounds_y = bounds_y
+        self.index = index
+        self.paddle = self.temp
+
+        self.bounds = bounds[0], bounds[1] - Paddle.LENGTH
         # Like original pong, we break this up into 8 segments from the edge angle (acute_angle) to pi/2 at the center
         # Changing acute_angle lets us change the extreme edge angle of the paddle.
         acute_angle = .125
@@ -31,9 +34,56 @@ class Paddle(object):
         angles += map(lambda x: 1 + x * -1, reversed(angles))
         # Final table is the output vector (x,y) of each angle
         self.bounce_table = [(math.cos(n*math.pi-math.pi/2.0), math.sin(n*math.pi-math.pi/2.0)) for n in angles]
+        self.time = time.time()
+       
+    def temp(self):
+        pass
+
+    def stop(self):
+        if self.direction == 0:
+            return
+
+        self.update()
+        self.direction = 0
+        self.send(self)
+
         
+
+    def moveUp(self):
+        if self.direction == -1:
+            return
+        #print 'self.direction wasn\'t -1'
+        self.update()
+        self.direction = -1
+        self.send(self)
+        
+
+    def moveDown(self):
+        if self.direction == 1:
+            return
+
+        self.update()
+        self.direction = 1
+        self.send(self)
+
     def update(self):
-        self.rect.y = max(self.bounds_y[0], min(self.bounds_y[1]-self.rect.height, self.rect.y + self.direction * self.velocity))
+        t = time.time()
+        #print str(self.velocity * t - self.times) + '-'
+        newTop = max(self.bounds[0], min(self.bounds[1], self.rec.y + (self.direction * self.velocity * (t - self.time))))
+        
+        #too fast to do anything
+        if newTop == self.rec.y and self.direction != 0:
+            return
+        print 'updated paddle ' + str(self.index) + str(newTop)
+
+        self.time = t
+        self.rec.y = newTop
+
+        if self.rec.y < self.bounds[0] or self.rec.y > self.bounds[1]:
+            #print 'paddle out of bounds'
+            sys.exit()
+
+        
 
     def calculate_bounce(self, delta):
         return self.bounce_table[int(round(delta * (len(self.bounce_table)-1)))]
@@ -47,18 +97,18 @@ class Ball(object):
     def __init__(self, velocity, image_path, *groups):
         self.velocity = velocity
         #self.rect = rect_from_image(image_path)
-        self.rect = Rect( 0, 0, 96, 96 )
+        self.rec = Rect( 0, 0, 96, 96 )
         self.velocity_vec = [0., 0.]
         self.hit_flag = NONE
 
 
     def update(self):
-        self.rect.x += self.velocity_vec[0]
-        self.rect.y += self.velocity_vec[1]
+        self.rec.x += self.velocity_vec[0]
+        self.rec.y += self.velocity_vec[1]
         self.hit_flag = NONE
 
     def print_coords(self):
-        print (self.rect.left, self.rect.right, self.rect.top, self.rect.bottom)
+        print (self.rect.left, self.rec.right, self.rec.top, self.rec.bottom)
         print '\t' + str((self.velocity_vec[0], self.velocity_vec[1]))
     
     #def set_position_x(self, value):

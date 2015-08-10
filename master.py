@@ -3,6 +3,7 @@ import cPickle as Pickle
 from pypong.player import BasicAIPlayer, Player
 from functools import partial
 import pongdisplay
+import pypong.entity as entity
 
 player_left = None # set the players as global so the control thread has access
 player_right = None # simplest way to do it
@@ -11,18 +12,18 @@ running = True
 def setup(ip, port, display, mini_display, client_num, scale = 1):
     global player_left, player_right
     rect = pygame.image.load( 'assets/paddle.png' ).get_rect()
-    configuration = {
+    config = {
         'screen_size': display,
         'individual_screen_size': mini_display,
         'paddle_image': 'assets/paddle.png',
         'paddle_left_position': 10, #x position
         'paddle_right_position': (display[0] - 10) - rect.w, #this is the x position of the paddle
-        'paddle_velocity': 12.,
+        'paddle_velocity': 120. * scale,
         'paddle_bounds': (0, display[1]),  
         #'line_image': 'assets/dividing-line.png',
         'ball_image': 'assets/ball.png',
-        'ball_velocity': 80.*scale,
-        'ball_velocity_max': 130.*scale,
+        'ball_velocity': 80. * scale,
+        'ball_velocity_max': 130. * scale,
         'bounce_multiplier': 1.105,
     }
 
@@ -41,11 +42,14 @@ def setup(ip, port, display, mini_display, client_num, scale = 1):
     while len(connections) != client_num + 1:
         findnewConnections(connections, server_socket)        
 
+    paddle_left  = entity.Paddle(config['paddle_velocity'], config['paddle_image'], config['paddle_bounds'], entity.PADDLE_LEFT)
+    paddle_right = entity.Paddle(config['paddle_velocity'], config['paddle_image'], config['paddle_bounds'], entity.PADDLE_RIGHT)
+
     # Prepare game
-    player_left  = BasicAIPlayer()#None, 'up', 'down')
-    #player_left  = Player(None, 'up', 'down')
-    player_right = BasicAIPlayer()#None, 'up', 'down')
-    #player_right = Player(None, 'up', 'down')
+    #player_left  = BasicAIPlayer(paddle_left)#None, 'up', 'down')
+    player_left  = Player(paddle_left)
+    #player_right = BasicAIPlayer(paddle_right)#None, 'up', 'down')
+    player_right = Player(paddle_right)
 
     pygame.display.init()
     pygame.display.set_mode((200,200))
@@ -53,7 +57,7 @@ def setup(ip, port, display, mini_display, client_num, scale = 1):
 
 
 
-    game = pypong.Game(player_left, player_right, configuration, partial(sendConnection, connections = connections, server_socket = server_socket), ctrls)
+    game = pypong.Game(player_left, player_right, config, partial(sendConnection, connections = connections, server_socket = server_socket), ctrls)
     pygame.display.quit()
 
     server_socket.close()
@@ -93,27 +97,31 @@ def ctrls(game):
                 return
 
             if event.type == pygame.KEYDOWN:
-                player_left.input_state = None
-                player_right.input_state = None
                 
                 if event.key == pygame.K_r:
-                    player_right.input_state = 'up'
+                    player_right.moveUp()
                 if event.key == pygame.K_f:
-                    player_right.input_state = 'down'
+                    player_right.moveDown()
 
                 if event.key == pygame.K_UP:
-                    player_left.input_state = 'up'
+                    print 'up'
+                    player_left.paddle.moveUp()
                 if event.key == pygame.K_DOWN:
-                    player_left.input_state = 'down'
+                    print 'down'
+                    player_left.paddle.moveDown()
+
                 if event.key == pygame.K_ESCAPE:
-                    running = False
+                    game.running = False
+
                 if event.key == pygame.K_p:
                     print game.ball.rect.x, game.ball.rect.y
                     print game.ball.velocity_vec[0], game.ball.velocity_vec[1]  
 
             if event.type == pygame.KEYUP:
-                player_left.input_state = None
-                player_right.input_state = None
-
+                if event.key == pygame.K_r or event.key == pygame.K_f:
+                    player_right.paddle.stop()
+                if event.key == pygame.K_UP or event.key == pygame.K_DOWN:
+                    player_left.paddle.stop()
+                    print 'release'
     
 
