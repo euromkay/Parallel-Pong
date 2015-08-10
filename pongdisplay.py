@@ -34,8 +34,9 @@ def screenDraw(tile):
     ballrect   = tile.ball.get_rect()
     draw = tile.screen.blit
     ball = tile.ball
-    paddle_rect  = tile.paddle.get_rect()
     isEdge = tile.isEdge
+    if isEdge:
+        paddle_rect  = tile.paddle.get_rect()
     getTime = time.time
 
     if tile.paddle_index == entity.PADDLE_RIGHT:
