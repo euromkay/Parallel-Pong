@@ -63,13 +63,14 @@ def screenDraw(tile):
         ball_botEdge = ball_topEdge + 96
 
 
-        inWidth = within(leftEdge, ball_leftEdge, rightEdge) or within(leftEdge, ball_rightEdge, rightEdge)
-        inHeight = within(topEdge, ball_topEdge, botEdge) or within(topEdge, ball_botEdge, botEdge)
+        inWidth = entity.within(leftEdge, ball_leftEdge, rightEdge) or entity.within(leftEdge, ball_rightEdge, rightEdge)
+        inHeight = entity.within(topEdge, ball_topEdge, botEdge) or entity.within(topEdge, ball_botEdge, botEdge)
 
         if ( inWidth and inHeight):
             ballrect.x = ball_leftEdge - leftEdge# offset the bounds
             ballrect.y = ball_topEdge - topEdge
             draw( ball, ballrect )
+
 
         if isEdge:  
             paddleTopEdge = tile.paddle_top + (tile.paddle_direc * (curr_time - tile.paddle_time) * tile.paddle_vel)
@@ -77,25 +78,20 @@ def screenDraw(tile):
 
             #paddle trying to go too high up
             if paddleTopEdge < tile.paddle_min:
-                print tile.paddle_top, tile.paddle_direc, paddleTopEdge, tile.paddle_min
-                return
                 paddleTopEdge     = tile.paddle_min
                 paddleBotEdge     = paddleTopEdge + entity.Paddle.LENGTH
                 tile.paddle_direc = 0
                 tile.paddle_top   = tile.paddle_min
-                print 'nto supposed to go here'
 
             
             #paddle trying to go too low
             elif tile.paddle_max < paddleTopEdge:
-                return
-                print 'Wtf why you in here'
                 paddleTopEdge = tile.paddle_max
                 paddleBotEdge = paddleTopEdge + entity.Paddle.LENGTH
                 tile.paddle_direc = 0
                 tile.paddle_top = tile.paddle_max
 
-            if within(topEdge, paddleBotEdge, botEdge) or within(topEdge, paddleTopEdge, botEdge):
+            if entity.within(topEdge, paddleBotEdge, botEdge) or entity.within(topEdge, paddleTopEdge, botEdge):
                 paddle_rect.y = paddleTopEdge - topEdge
                 draw( tile.paddle, paddle_rect )
 
@@ -164,7 +160,7 @@ def setup(ip, port, display, total_display, coords = None):
         data += s.recv(BUFFER)
         if not data:
             tile.active = False
-            print 'exiting here'
+            print 'display is closing'
             return
         s.send('gotit')
 
@@ -188,12 +184,12 @@ def setup(ip, port, display, total_display, coords = None):
                     tile.paddle_top   = float(segments[pypong.P_TOP])
                     tile.paddle_direc = float(segments[pypong.P_DIREC])
                     tile.paddle_time  = float(segments[pypong.P_TIME])
-                    print tile.paddle_direc
+                    #print tile.paddle_direc
             elif data_type == pypong.PADDLE_INIT_TYPE:
                 tile.paddle_vel = float(segments[1])
                 tile.paddle_min = float(segments[2])
                 tile.paddle_max = float(segments[3])
-                print 'tile start info: ' + str((tile.paddle_vel, tile.paddle_min, tile.paddle_max))
+                #print 'tile start info: ' + str((tile.paddle_vel, tile.paddle_min, tile.paddle_max))
 
             data = ''
             for seg in segments[data_type:]:
@@ -237,6 +233,3 @@ class Tile(object):
 
         
         
-
-def within(x, a, y):
-    return x < a and a < y

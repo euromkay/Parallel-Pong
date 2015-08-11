@@ -1,36 +1,91 @@
 import random
-import pong_sound
+import pong_sound, entity
+import threading, time
 
 class BasicAIPlayer(object):
     def __init__(self, paddle):
         self.bias = random.random() - 0.5
         self.hit_count = 0
         self.paddle = paddle
-        
-    def update(self, ball_center, bounds):
-        paddle = self.paddle
-        # Dead simple AI, waits until the ball is on its side of the screen then moves the paddle to intercept.
-        # A bias is used to decide which edge of the paddle is going to be favored.
-        #paddle.update()
+        self.game = None
 
-           #paddle left edge to the left of center   ball left edge
-        if (paddle.rec.left < bounds.centerx and ball_center[0] < bounds.centerx) or (paddle.rec.right > bounds.centerx and ball_center[0] > bounds.centerx):
-            delta = (paddle.rec.centery + self.bias * paddle.rec.height) - ball_center[1]
-            #if abs(delta) > paddle.velocity:
-            if delta > 0:
-                #print '\t move down'
-                return paddle.moveDown()
-            #else:
-            #print '\t move up'
-            return paddle.moveUp()
-        #else:
-        #print '\t is going to hit the paddle, don\'t move it'
-        return paddle.stop()
+        self.start = threading.Thread(target = self.calculate).start
+
+        if paddle.index == entity.PADDLE_LEFT:
+            self.name = 'left'
+        else:
+            self.name = 'right'
+
+    def calculate(self):
+        game = self.game
+        while game.hit == None:
+            continue
+
+        paddleObj = self.paddle
+
+        if paddleObj.index == entity.PADDLE_RIGHT:
+            headingMyWay = self.isPositive
+        else:
+            headingMyWay = self.isNegative
+
+
+        height = paddleObj.rec.height
+        velocity = paddleObj.velocity
+        section_length = height/len(paddleObj.bounce_table)
+
+        paddle = paddleObj.rec
+
+        stop = paddleObj.stop
+        up = paddleObj.moveUp
+        down = paddleObj.moveDown
+
+
+        lastAction = stop
+
+        while game.running:
+            if not headingMyWay(game.ball.velocity_vec[0]):
+                if lastAction == stop:
+                    continue
+                lastAction = stop
+                stop()
+                continue
+
+            bally = game.hit['bally']
+            delta = (paddle.centery + self.bias * height) - bally
+            
+            if abs(delta) < section_length and paddle.top < bally and paddle.bottom > bally:
+                if lastAction != stop:
+                    stop()
+                    lastAction = stop
+
+            elif delta < 0:
+                down()
+                time.sleep(abs(delta)/velocity)
+                stop()
+            elif delta > 0:
+                up()
+                time.sleep(abs(delta)/velocity)
+                stop()
+            else:
+                if lastAction != stop:
+                    stop()
+                    lastAction = stop
+
+
+        print 'aiPlayer ' + str(self.name) + ' control thread stopped\n'
+
+
+
+    def isPositive(self, vel):
+        return vel > 0
+
+    def isNegative(self, vel):
+        return vel < 0
 
     def hit(self):
         self.hit_count += 1
-        if self.hit_count > 6:
-            self.bias = random.random() - 0.5 # Recalculate our bias, this game is going on forever
+        if self.hit_count > 2:
+            self.bias = random.random() # Recalculate our bias, this game is going on forever
             self.hit_count = 0
             
     def lost(self):

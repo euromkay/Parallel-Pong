@@ -15,6 +15,8 @@ def rect_from_image(path):
 
 class Paddle(object):
     LENGTH = 100
+    lastDirection = -2
+    lastPosition = -1
     def __init__(self, velocity, image_path, bounds, index, *groups):
         #self.image = image
         #self.rect = rect_from_image(image_path)
@@ -68,19 +70,17 @@ class Paddle(object):
 
     def update(self):
         t = time.time()
-        #print str(self.velocity * t - self.times) + '-'
         newTop = max(self.bounds[0], min(self.bounds[1], self.rec.y + (self.direction * self.velocity * (t - self.time))))
         
         #too fast to do anything
         if newTop == self.rec.y and self.direction != 0:
             return
-        print 'updated paddle ' + str(self.index) + str(newTop)
+        print 'updated paddle ' + str(self.index) + ' - '+ str(newTop)
 
         self.time = t
         self.rec.y = newTop
 
         if self.rec.y < self.bounds[0] or self.rec.y > self.bounds[1]:
-            #print 'paddle out of bounds'
             sys.exit()
 
         
@@ -282,3 +282,7 @@ class Rect( object ):
 
         return outside_right or outside_left or outside_top or outside_bottom
         
+
+
+def within(x, a, y):
+    return x < a and a < y

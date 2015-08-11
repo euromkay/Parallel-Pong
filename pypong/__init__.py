@@ -36,49 +36,65 @@ def line_line_intersect(x1, y1, x2, y2, x3, y3, x4, y4):
     return False
     
 class Game(object):
-    def __init__(self, player_left, player_right, config, send, ctrls):
+    hit = None
+    
+    def __init__(self, player_left, player_right, config, send):
         self.player_left = player_left
         self.player_right = player_right
-        players = [player_left, player_right]
+
+        player_left.game = self
+        player_right.game = self
 
         self.config = config
 
-        paddle_left = player_left.paddle
-        paddle_right = player_right.paddle
-        paddle_left.send  = self.sendPaddlePacket
-        paddle_right.send = self.sendPaddlePacket
+        player_left.paddle.send  = self.sendPaddlePacket
+        player_right.paddle.send = self.sendPaddlePacket
 
-        paddle_left.rec.topleft  = (self.config['paddle_left_position'],  (self.config['screen_size'][1]-paddle_left.rec.height)/2)
-        paddle_right.rec.topleft = (self.config['paddle_right_position'], (self.config['screen_size'][1]-paddle_right.rec.height)/2)
+        player_left.paddle.rec.topleft  = (self.config['paddle_left_position'],  (self.config['screen_size'][1]-player_left.paddle.rec.height)/2)
+        player_right.paddle.rec.topleft = (self.config['paddle_right_position'], (self.config['screen_size'][1]-player_right.paddle.rec.height)/2)
 
         self.ball = entity.Ball( self.config['ball_velocity'], config['ball_image'] )
         
         
-        bounds = entity.Rect(0, 0, config['screen_size'][0], config['screen_size'][1])
-        self.bounds = bounds
+        self.bounds = entity.Rect(0, 0, config['screen_size'][0], config['screen_size'][1])
 
+        paddle = player_left.paddle
         self.send = send
-        self.send([PADDLE_INIT_TYPE, paddle_left.velocity, paddle_left.bounds[0], paddle_left.bounds[1]])
-        self.reset_game(paddle_left, paddle_right, self.bounds, random.random() < 0.5)
-        
+        self.send([PADDLE_INIT_TYPE, paddle.velocity, paddle.bounds[0], paddle.bounds[1]])
+        self.reset_game(player_left.paddle, player_right.paddle, self.bounds, random.random() < 0.5)
+        self.running = False
+
+
+
+    def start(self, ctrls):
         self.running = True
-        threading.Thread(target = ctrls, args = [self]).start()
         self.time = time.time()
-
         self.sendBallPacket()
-        self.sendPaddlePacket(paddle_left)
-        self.sendPaddlePacket(paddle_right)
+        self.sendPaddles()
 
+        threading.Thread(target = ctrls, args = [self]).start()
 
         ball = self.ball.rec  #refers to ball's rectangle
         velocity = self.ball.velocity_vec #refers to ball's velocity vector
+        within = entity.within
+        bounds = self.bounds
+
+        player_left  = self.player_left
+        player_right = self.player_right
+        paddle_left  = player_left.paddle
+        paddle_right = player_right.paddle
+        player_left.start()
+        player_right.start()
+
+
         while self.running:
-            hit = self.nextEvent(paddle_left, paddle_right)
+            self.hit = self.nextEvent(paddle_left, paddle_right)
+            hit = self.hit
             
+
             while(time.time() < hit['time']):
                 if not self.running:
-                    return
-
+                    continue
                 #for player in players:
                     #if player.update((hit['ballx'], hit['bally']), bounds):
                         #print 'ballxbally'
@@ -123,7 +139,7 @@ class Game(object):
                     ball.y = hit['bally']
 
                     new_velocity = paddle_obj.calculate_bounce(min(1,max(0,(ball.centery - paddle.y)/float(paddle.height))))
-                    self.ball.velocity = min(config['ball_velocity_max'], self.ball.velocity * config['bounce_multiplier'])
+                    self.ball.velocity = min(self.config['ball_velocity_max'], self.ball.velocity * self.config['bounce_multiplier'])
                     velocity[0] = new_velocity[0] * self.ball.velocity * direc
                     velocity[1] = new_velocity[1] * self.ball.velocity
 
@@ -136,13 +152,13 @@ class Game(object):
                     time.sleep(2)
                     hit['time'] = time.time()
                     self.reset_game(paddle_left, paddle_right, self.bounds, playerSide == self.player_left)
-                    self.sendPaddlePacket(paddle_left)
-                    self.sendPaddlePacket(paddle_right)
                     ball.hit_flag = entity.NONE
 
 
             self.time = hit['time']
             self.sendBallPacket()
+
+        print 'game ended'
 
 
     def nextEvent(self, paddle_left, paddle_right):
@@ -221,16 +237,14 @@ class Game(object):
         info.append(self.time) #4
         self.send(info)
 
-    def sendPaddlePacket(self, paddle):
+    def sendPaddlePacket(self, paddle, byPass = False):
         info = [PADDLE_TYPE]
         info.append(paddle.index)
         info.append(paddle.rec.top)
         info.append(paddle.direction)
         info.append(paddle.time)
-        print 'sending paddle packet : ' + str(paddle.rec.top)
+        print 'sending paddle[' + str(paddle.index) + '] packet : ' + str(paddle.rec.top)
         self.send(info)
-
-
 
 
     def reset_game(self, paddle_left, paddle_right, bounds, serveLeft=True):
@@ -256,6 +270,11 @@ class Game(object):
 
         paddle_left.time  = time.time()
         paddle_right.time = time.time()
+        self.sendPaddles(byPass = True)
+
+    def sendPaddles(self, byPass = False):
+        self.sendPaddlePacket(self.player_right.paddle, byPass)
+        self.sendPaddlePacket(self.player_left.paddle, byPass)
 
 
 def within(x, a, y):
