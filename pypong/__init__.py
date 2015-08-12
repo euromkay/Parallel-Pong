@@ -7,9 +7,15 @@ BALL_TYPE = 6
 
 PADDLE_TYPE = 5
 
+SOUND_TYPE = 2
+
 P_TOP = 2
 P_DIREC = 3
 P_TIME = 4
+
+WALL_HIT = 0
+PADDLE_HIT = 1
+WIN = 2
 
 def line_line_intersect(x1, y1, x2, y2, x3, y3, x4, y4):
     # Taken from http://paulbourke.net/geometry/lineline2d/
@@ -94,7 +100,7 @@ class Game(object):
 
             while(time.time() < hit['time']):
                 if not self.running:
-                    continue
+                    break
                 #for player in players:
                     #if player.update((hit['ballx'], hit['bally']), bounds):
                         #print 'ballxbally'
@@ -104,8 +110,12 @@ class Game(object):
                         #self.send(self.getPaddlePacket(player.paddle))
                 #stime.sleep(1/32.)
 
+            if not self.running:
+                continue
+
             ball.hit_flag = hit['type']
             if hit['type'] == entity.WALL:
+                self.sendSound(WALL_HIT)
                 ball.x = hit['ballx']
                 ball.y = hit['bally']
                 velocity[1] *= -1
@@ -131,10 +141,11 @@ class Game(object):
                     playerSide = self.player_right
                     playerNotSide = self.player_left
                     direc = -1.0
-                paddle_obj.update()
+                paddle_obj.update(paddle_obj.direction)
 
                 # its a paddle hit
                 if within(paddle.top, hit['bally'], paddle.bottom) or within(paddle.top, hit['bally'] + paddle.height, paddle.bottom):
+                    self.sendSound(PADDLE_HIT)
                     ball.x = hit['ballx']
                     ball.y = hit['bally']
 
@@ -145,6 +156,7 @@ class Game(object):
 
                     playerSide.hit() #really for purposes of the robot so it can hit
                 else: #miss
+                    self.sendSound(WIN)
                     print 'missed ball'
                     playerSide.lost()
                     playerNotSide.won()
@@ -152,7 +164,6 @@ class Game(object):
                     time.sleep(2)
                     hit['time'] = time.time()
                     self.reset_game(paddle_left, paddle_right, self.bounds, playerSide == self.player_left)
-                    ball.hit_flag = entity.NONE
 
 
             self.time = hit['time']
@@ -160,6 +171,8 @@ class Game(object):
 
         print 'game ended'
 
+    def sendSound(self, sound):
+        self.send([SOUND_TYPE, sound])
 
     def nextEvent(self, paddle_left, paddle_right):
         ball = self.ball.rec
@@ -243,7 +256,7 @@ class Game(object):
         info.append(paddle.rec.top)
         info.append(paddle.direction)
         info.append(paddle.time)
-        print 'sending paddle[' + str(paddle.index) + '] packet : ' + str(paddle.rec.top)
+        print 'sending paddle[' + str(paddle.index) + '] packet : ' + str(paddle.direction)
         self.send(info)
 
 

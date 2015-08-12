@@ -143,7 +143,6 @@ def setup(ip, port, display, total_display, coords = None):
      #   edge_node = False
     pygame.display.flip()
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.settimeout(None)
 
     try :
         s.connect((ip, port))
@@ -190,7 +189,14 @@ def setup(ip, port, display, total_display, coords = None):
                 tile.paddle_min = float(segments[2])
                 tile.paddle_max = float(segments[3])
                 #print 'tile start info: ' + str((tile.paddle_vel, tile.paddle_min, tile.paddle_max))
-
+            elif data_type == pypong.SOUND_TYPE:
+                sound_type = int(segments[1])
+                if sound_type == pypong.WALL_HIT:
+                    sound.wall_hit(tile.mixer)
+                elif sound_type == pypong.PADDLE_HIT:
+                    sound.paddle_hit(tile.mixer)
+                else:#if sound_type == pypong.WIN:
+                    sound.won_sound(tile.mixer)
             data = ''
             for seg in segments[data_type:]:
                 data += seg + '*'
@@ -230,6 +236,6 @@ class Tile(object):
     paddle_vel = 0.0
     paddle_min = -5000
     paddle_max = sys.float_info.max
-
+    sounds = []
         
         

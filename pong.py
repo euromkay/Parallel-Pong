@@ -28,7 +28,7 @@ if local:
 
 	rows  = int(sys.argv[1])
 	cols  = int(sys.argv[2])
-	scale = 3
+	scale = 1
 	i = 0
 	t = None
 	for w in reversed(range(rows)):

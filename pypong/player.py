@@ -50,7 +50,7 @@ class BasicAIPlayer(object):
                 stop()
                 continue
 
-            bally = game.hit['bally']
+            bally = game.hit['bally'] + game.ball.rec.height/2
             delta = (paddle.centery + self.bias * height) - bally
             
             if abs(delta) < section_length and paddle.top < bally and paddle.bottom > bally:
@@ -58,11 +58,11 @@ class BasicAIPlayer(object):
                     stop()
                     lastAction = stop
 
-            elif delta < 0:
+            elif delta < 0 and paddle.top != paddleObj.bounds[1]:
                 down()
                 time.sleep(abs(delta)/velocity)
                 stop()
-            elif delta > 0:
+            elif delta > 0 and paddle.top != paddleObj.bounds[0]:
                 up()
                 time.sleep(abs(delta)/velocity)
                 stop()

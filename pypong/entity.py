@@ -45,9 +45,8 @@ class Paddle(object):
         if self.direction == 0:
             return
 
-        self.update()
-        self.direction = 0
-        self.send(self)
+        if self.update(0):
+            self.send(self)
 
         
 
@@ -55,27 +54,26 @@ class Paddle(object):
         if self.direction == -1:
             return
         #print 'self.direction wasn\'t -1'
-        self.update()
-        self.direction = -1
-        self.send(self)
+        if self.update(-1):
+            self.send(self)
         
 
     def moveDown(self):
         if self.direction == 1:
             return
 
-        self.update()
-        self.direction = 1
-        self.send(self)
+        if self.update(1):
+            self.send(self)
 
-    def update(self):
+    def update(self, newDirection):
         t = time.time()
         newTop = max(self.bounds[0], min(self.bounds[1], self.rec.y + (self.direction * self.velocity * (t - self.time))))
         
+        
         #too fast to do anything
         if newTop == self.rec.y and self.direction != 0:
-            return
-        print 'updated paddle ' + str(self.index) + ' - '+ str(newTop)
+            self.direction = newDirection
+            return False
 
         self.time = t
         self.rec.y = newTop
@@ -83,7 +81,9 @@ class Paddle(object):
         if self.rec.y < self.bounds[0] or self.rec.y > self.bounds[1]:
             sys.exit()
 
-        
+        self.direction = newDirection
+        return True
+
 
     def calculate_bounce(self, delta):
         return self.bounce_table[int(round(delta * (len(self.bounce_table)-1)))]
@@ -99,7 +99,6 @@ class Ball(object):
         #self.rect = rect_from_image(image_path)
         self.rec = Rect( 0, 0, 96, 96 )
         self.velocity_vec = [0., 0.]
-        self.hit_flag = NONE
 
 
     def update(self):
