@@ -98,6 +98,7 @@ class BasicAIPlayer(object):
 class Player(object):
     def __init__(self, paddle):
         self.paddle = paddle
+        self.start = self.hit
         
     def update(self, paddle, game):
         if self.paddle.update():
