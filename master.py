@@ -191,6 +191,7 @@ def ctrls(game):
                 break
 
             if event.type == pygame.KEYDOWN:
+                print event.key
                 
                 if event.key == pygame.K_r:
                     player_right.paddle.moveUp()
