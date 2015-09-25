@@ -177,6 +177,7 @@ def findnewConnections(connections, server_socket):
         if sock == server_socket:
             sockfd, addr = server_socket.accept()
             connections.append(sockfd)
+            print len(connections)
 
 
 
