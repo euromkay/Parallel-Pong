@@ -32,7 +32,7 @@ def setup(ip, port, display, mini_display, client_num, scale = 1):
         'ball_velocity_max': 130. * scale,
         'bounce_multiplier': 1.105,
     }
-
+    print scale
     #make a socket, and connect to a already running server socket
     # read some file with the ip addresses and put them in the variables ip addersses
     # hard coded for now
@@ -51,10 +51,10 @@ def setup(ip, port, display, mini_display, client_num, scale = 1):
     paddle_right = entity.Paddle(config['paddle_velocity'], config['paddle_image'], config['paddle_bounds'], entity.PADDLE_RIGHT)
 
     # Prepare game
-    player_left  = BasicAIPlayer(paddle_left)#None, 'up', 'down')
-    #player_left  = Player(paddle_left)
-    player_right = BasicAIPlayer(paddle_right)#None, 'up', 'down')
-    #player_right = Player(paddle_right)
+#    player_left  = BasicAIPlayer(paddle_left)#None, 'up', 'down')
+    player_left  = Player(paddle_left)
+ #   player_right = BasicAIPlayer(paddle_right)#None, 'up', 'down')
+    player_right = Player(paddle_right)
 
     pygame.display.init()
     pygame.display.set_mode((200,200))

@@ -56,14 +56,14 @@ else:
 	TOTAL_WIDTH = 1920 * 5
 	TOTAL_HEIGHT = 1200 * 3
 	mini_display = 1920, 1200
-	scale = 1
+	scal = 1
 	COLS = 5
 	ROWS = 3
 	name = platform.node()
 	ip = "10.0.0.10"
 	port = 5000
 	if name == 'master':
-		master.setup(ip, port, (TOTAL_WIDTH, TOTAL_HEIGHT), mini_display, 15)
+		master.setup(ip, port, (TOTAL_WIDTH, TOTAL_HEIGHT), mini_display, 15, scale = 5)
 	else:
 		xcoord = int(name[5])
 		ycoord = int(name[7])

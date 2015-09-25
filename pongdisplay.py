@@ -114,7 +114,7 @@ def setup(ip, port, display, total_display, coords = None):
         os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % coords
     pygame.init()
     tile = Tile()
-    tile.screen = pygame.display.set_mode( (display['right'] - display['left'], display['bot'] - display['top']))
+    tile.screen = pygame.display.set_mode( (display['right'] - display['left'], display['bot'] - display['top']), pygame.NOFRAME, 0)
 
     tile.ball = pygame.image.load( 'assets/ball.png' )
 
