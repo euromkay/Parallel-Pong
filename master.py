@@ -51,9 +51,9 @@ def setup(ip, port, display, mini_display, client_num, scale = 1):
     paddle_right = entity.Paddle(config['paddle_velocity'], config['paddle_image'], config['paddle_bounds'], entity.PADDLE_RIGHT)
 
     # Prepare game
-#    player_left  = BasicAIPlayer(paddle_left)#None, 'up', 'down')
+   # player_left  = BasicAIPlayer(paddle_left)#None, 'up', 'down')
     player_left  = Player(paddle_left)
- #   player_right = BasicAIPlayer(paddle_right)#None, 'up', 'down')
+    #player_right = BasicAIPlayer(paddle_right)#None, 'up', 'down')
     player_right = Player(paddle_right)
 
     pygame.display.init()
@@ -198,9 +198,9 @@ def ctrls(game):
                 if event.key == pygame.K_f:
                     player_right.paddle.moveDown()
 
-                if event.key == pygame.K_UP:
+                if event.key == 264 or pygame.K_UP:
                     player_left.paddle.moveUp()
-                if event.key == pygame.K_DOWN:
+                if event.key == 258 or pygame.K_DOWN:
                     player_left.paddle.moveDown()
 
                 if event.key == pygame.K_ESCAPE:
@@ -214,9 +214,8 @@ def ctrls(game):
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_r or event.key == pygame.K_f:
                     player_right.paddle.stop()
-                if event.key == pygame.K_UP or event.key == pygame.K_DOWN:
+                if event.key == pygame.K_UP or event.key == pygame.K_DOWN or event.key == 264 or event.key == 258
                     player_left.paddle.stop()
 
     print 'controls finished: 1\n'
     
-
