@@ -214,7 +214,7 @@ def ctrls(game):
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_r or event.key == pygame.K_f:
                     player_right.paddle.stop()
-                if event.key == pygame.K_UP or event.key == pygame.K_DOWN or event.key == 264 or event.key == 258
+                if event.key == pygame.K_UP or event.key == pygame.K_DOWN or event.key == 264 or event.key == 258:
                     player_left.paddle.stop()
 
     print 'controls finished: 1\n'
