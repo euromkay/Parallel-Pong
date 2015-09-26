@@ -41,6 +41,7 @@ def screenDraw(tile):
     if tile.paddle_index == entity.PADDLE_RIGHT:
         paddle_rect.x = rightEdge - (paddle_rect.w + leftEdge)
     b = True
+    tile.drawing = True
     while tile.active:
         #print tile.paddle_direc
 
@@ -100,6 +101,7 @@ def screenDraw(tile):
             #sound.paddle_hit(tile.mixer)
         #elif(tile.data[4] == entity.WALL):
             #sound.wall_hit(tile.mixer)
+    tile.drawing = False
 
 
 def read_pong_settings(left_edge, right_edge, bot_edge, top_edge, tile):
@@ -160,6 +162,15 @@ def setup(ip, port, display, total_display, coords = None):
         data += s.recv(BUFFER)
         if not data:
             tile.active = False
+            while(tile.drawing):
+                continue
+            
+            tile.screen.fill((149,0,0)) #red
+            pygame.display.flip()
+            time.sleep(3)
+            pygame.display.quit()
+            pygame.quit()
+
             print 'display is closing'
             return
         s.send('gotit')
