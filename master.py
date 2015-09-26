@@ -67,9 +67,10 @@ def setup(ip, port, display, mini_display, client_num, scale = 1):
     game.start(ctrls)
     pygame.display.quit()
 
-    lock.acquire()
+    for sock in connections:
+        sock.close()
+
     server_socket.close()
-    lock.release()
     print 'server closed'
 
 
