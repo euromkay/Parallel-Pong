@@ -56,7 +56,7 @@ else:
 	TOTAL_WIDTH = 1920 * 5
 	TOTAL_HEIGHT = 1200 * 3
 	mini_display = 1920, 1200
-	scal = 4
+	scal = 15
 	COLS = 5
 	ROWS = 3
 	name = platform.node()
