@@ -111,11 +111,13 @@ def read_pong_settings(left_edge, right_edge, bot_edge, top_edge, tile):
     tile.topEdge = top_edge
 
 def setup(ip, port, display, total_display, coords = None):
+    mode = pygame.FULLSCREEN
     if coords != None:
         os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % coords
+        mode = pygame.NOFRAME
     pygame.init()
     tile = Tile()
-    tile.screen = pygame.display.set_mode( (display['right'] - display['left'], display['bot'] - display['top']), pygame.NOFRAME, 0)
+    tile.screen = pygame.display.set_mode( (display['right'] - display['left'], display['bot'] - display['top']), mode, 0)
 
     tile.ball = pygame.image.load( 'assets/ball.png' )
     print (entity.Ball.LENGTH)
