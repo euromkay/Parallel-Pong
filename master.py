@@ -47,11 +47,15 @@ def setup(ip, port, display, mini_display, client_num, scale = 1):
     paddle_left  = entity.Paddle(config['paddle_velocity'], config['paddle_image'], config['paddle_bounds'], entity.PADDLE_LEFT)
     paddle_right = entity.Paddle(config['paddle_velocity'], config['paddle_image'], config['paddle_bounds'], entity.PADDLE_RIGHT)
 
+    ai = False
     # Prepare game
-   # player_left  = BasicAIPlayer(paddle_left)#None, 'up', 'down')
-    player_left  = Player(paddle_left)
-    #player_right = BasicAIPlayer(paddle_right)#None, 'up', 'down')
-    player_right = Player(paddle_right)
+    if(ai):
+        player_right = BasicAIPlayer(paddle_right)#None, 'up', 'down')
+        player_left  = BasicAIPlayer(paddle_left)#None, 'up', 'down')
+    else:
+        player_left  = Player(paddle_left)
+        player_right = Player(paddle_right)
+
 
     pygame.display.init()
     pygame.display.set_mode((200,200))
@@ -63,7 +67,9 @@ def setup(ip, port, display, mini_display, client_num, scale = 1):
     game.start(ctrls)
     pygame.display.quit()
 
+    lock.acquire()
     server_socket.close()
+    lock.release()
     print 'server closed'
 
 

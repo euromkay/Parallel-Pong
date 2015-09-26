@@ -145,6 +145,7 @@ def setup(ip, port, display, total_display, coords = None):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     try :
+        time.sleep(5)
         s.connect((ip, port))
     except :
         print 'Unable to connect'
@@ -176,7 +177,7 @@ def setup(ip, port, display, total_display, coords = None):
                 tile.ball_top    = float(segments[BALL_Y])
                 tile.ball_vel_x  = float(segments[BALL_VX])
                 tile.ball_vel_y  = float(segments[BALL_VY])
-                tile.ball_time = float(segments[TIME])
+                tile.ball_time   = float(segments[TIME])
                 #print 'initial ball time ' + str(tile.ball_time) 
             elif data_type == pypong.PADDLE_TYPE:
                 if tile.isEdge and int(segments[1]) == tile.paddle_index:
