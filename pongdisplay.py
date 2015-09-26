@@ -19,8 +19,6 @@ BALL_VY = 4
 TIME = 5
 
 
-
-
 #class broadcastServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
     #pass
 #class requestHandler(posvec):
@@ -30,6 +28,7 @@ def screenDraw(tile):
     rightEdge = tile.rightEdge
     botEdge = tile.botEdge
 
+    ball_length = entity.Ball.LENGTH
 
     ballrect   = tile.ball.get_rect()
     draw = tile.screen.blit
@@ -57,10 +56,10 @@ def screenDraw(tile):
         curr_time = getTime()
 
         ball_leftEdge  = ball_init_x + (ball_vel_x*(curr_time - prev_time))
-        ball_rightEdge = ball_leftEdge + 96
+        ball_rightEdge = ball_leftEdge + ball_length
 
         ball_topEdge = ball_init_y + (ball_vel_y*(curr_time- prev_time))
-        ball_botEdge = ball_topEdge + 96
+        ball_botEdge = ball_topEdge + ball_length
 
 
         inWidth = entity.within(leftEdge, ball_leftEdge, rightEdge) or entity.within(leftEdge, ball_rightEdge, rightEdge)
@@ -74,12 +73,12 @@ def screenDraw(tile):
 
         if isEdge:  
             paddleTopEdge = tile.paddle_top + (tile.paddle_direc * (curr_time - tile.paddle_time) * tile.paddle_vel)
-            paddleBotEdge = paddleTopEdge + entity.Paddle.LENGTH
+            paddleBotEdge = paddleTopEdge + entity.Paddle.HEIGHT
 
             #paddle trying to go too high up
             if paddleTopEdge < tile.paddle_min:
                 paddleTopEdge     = tile.paddle_min
-                paddleBotEdge     = paddleTopEdge + entity.Paddle.LENGTH
+                paddleBotEdge     = paddleTopEdge + entity.Paddle.HEIGHT
                 tile.paddle_direc = 0
                 tile.paddle_top   = tile.paddle_min
 
@@ -87,7 +86,7 @@ def screenDraw(tile):
             #paddle trying to go too low
             elif tile.paddle_max < paddleTopEdge:
                 paddleTopEdge = tile.paddle_max
-                paddleBotEdge = paddleTopEdge + entity.Paddle.LENGTH
+                paddleBotEdge = paddleTopEdge + entity.Paddle.HEIGHT
                 tile.paddle_direc = 0
                 tile.paddle_top = tile.paddle_max
 
@@ -117,6 +116,8 @@ def setup(ip, port, display, total_display, coords = None):
     tile.screen = pygame.display.set_mode( (display['right'] - display['left'], display['bot'] - display['top']), pygame.NOFRAME, 0)
 
     tile.ball = pygame.image.load( 'assets/ball.png' )
+    print (entity.Ball.LENGTH)
+    tile.ball = pygame.transform.smoothscale(tile.ball, (entity.Ball.LENGTH, entity.Ball.LENGTH))
 
     read_pong_settings(display['left'], display['right'], display['bot'], display['top'], tile)
     pygame.mouse.set_visible(False)
@@ -127,20 +128,19 @@ def setup(ip, port, display, total_display, coords = None):
 
 
     if ( display['right'] == total_display['right'] ):
-        tile.paddle = pygame.image.load( 'assets/paddle.png' )
-        paddle_rect = tile.paddle.get_rect()
         tile.isEdge = True #will signal to update paddle as well
         tile.paddle_index = entity.PADDLE_RIGHT
 
     if( display['left'] == total_display['left'] ):
-        tile.paddle = pygame.image.load( 'assets/paddle.png' )
-        paddle_rect = tile.paddle.get_rect()
         tile.isEdge = True #will signal to update paddle as well
         tile.paddle_index = entity.PADDLE_LEFT
 
-    #else:
-     #   print 'nope'
-     #   edge_node = False
+    if (tile.isEdge):
+        tile.paddle = pygame.image.load( 'assets/paddle.png' )
+        tile.paddle = pygame.transform.smoothscale(tile.paddle, (entity.Paddle.WIDTH, entity.Paddle.HEIGHT))
+        paddle_rect = tile.paddle.get_rect()
+
+
     pygame.display.flip()
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 

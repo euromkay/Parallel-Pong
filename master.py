@@ -32,10 +32,7 @@ def setup(ip, port, display, mini_display, client_num, scale = 1):
         'ball_velocity_max': 130. * scale,
         'bounce_multiplier': 1.105,
     }
-    print scale
-    #make a socket, and connect to a already running server socket
-    # read some file with the ip addresses and put them in the variables ip addersses
-    # hard coded for now
+
     
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -198,9 +195,9 @@ def ctrls(game):
                 if event.key == pygame.K_f:
                     player_right.paddle.moveDown()
 
-                if event.key == 264 or pygame.K_UP:
+                if event.key == 264 or event.key == pygame.K_UP:
                     player_left.paddle.moveUp()
-                if event.key == 258 or pygame.K_DOWN:
+                if event.key == 258 or event.key == pygame.K_DOWN:
                     player_left.paddle.moveDown()
 
                 if event.key == pygame.K_ESCAPE:
@@ -209,7 +206,6 @@ def ctrls(game):
                 if event.key == pygame.K_p:
                     print game.ball.rec.x, game.ball.rec.y
                     print game.ball.velocity_vec[0], game.ball.velocity_vec[1] 
-                    print game.waiting 
 
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_r or event.key == pygame.K_f:

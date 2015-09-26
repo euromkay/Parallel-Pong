@@ -5,6 +5,8 @@ PADDLE_LEFT = 1
 PADDLE_RIGHT = 2
 WALL = 3
 
+SCALE = 2
+
 #from PIL import Image
 def rect_from_image(path):
     img = Image.open(path)
@@ -14,19 +16,20 @@ def rect_from_image(path):
     return rect
 
 class Paddle(object):
-    LENGTH = 100
+    HEIGHT = 100 * SCALE
+    WIDTH = 20 * SCALE
     lastDirection = -2
     lastPosition = -1
     def __init__(self, velocity, image_path, bounds, index, *groups):
         #self.image = image
         #self.rect = rect_from_image(image_path)
-        self.rec = Rect( 0, 0, 30, Paddle.LENGTH)
+        self.rec = Rect( 0, 0, Paddle.WIDTH, Paddle.HEIGHT)
         self.direction = 0
         self.velocity = velocity
         self.index = index
         self.paddle = self.temp
 
-        self.bounds = bounds[0], bounds[1] - Paddle.LENGTH
+        self.bounds = bounds[0], bounds[1] - Paddle.HEIGHT
         # Like original pong, we break this up into 8 segments from the edge angle (acute_angle) to pi/2 at the center
         # Changing acute_angle lets us change the extreme edge angle of the paddle.
         acute_angle = .125
@@ -94,10 +97,11 @@ class Line(object):
         self.rect = rect
 
 class Ball(object):
+    LENGTH = 96*SCALE
     def __init__(self, velocity, image_path, *groups):
         self.velocity = velocity
         #self.rect = rect_from_image(image_path)
-        self.rec = Rect( 0, 0, 96, 96 )
+        self.rec = Rect( 0, 0, Ball.LENGTH, Ball.LENGTH )
         self.velocity_vec = [0., 0.]
 
 
