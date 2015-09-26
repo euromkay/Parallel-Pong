@@ -117,7 +117,9 @@ def setup(ip, port, display, total_display, coords = None):
         mode = pygame.NOFRAME
     pygame.init()
     tile = Tile()
-    tile.screen = pygame.display.mode_ok( (display['right'] - display['left'], display['bot'] - display['top']), mode, 0)
+    ok_display = pygame.display.mode_ok((display['right'] - display['left'], display['bot'] - display['top']))
+    tile.screen = pygame.display.set_mode( (display['right'] - display['left'], display['bot'] - display['top']), mode, 0)
+    tile.screen = pygame.display
 
     tile.ball = pygame.image.load( 'assets/ball.png' )
     
@@ -144,7 +146,7 @@ def setup(ip, port, display, total_display, coords = None):
         tile.paddle = pygame.transform.smoothscale(tile.paddle, (entity.Paddle.WIDTH, entity.Paddle.HEIGHT))
         paddle_rect = tile.paddle.get_rect()
 
-    tile.screen.fill((0,0,240))
+    tile.screen.fill((0,0, 199)) #red
     pygame.display.flip()
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
