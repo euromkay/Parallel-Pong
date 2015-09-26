@@ -63,7 +63,7 @@ else:
 	ip = "10.0.0.10"
 	port = 5000
 	if name == 'master':
-		master.setup(ip, port, (TOTAL_WIDTH, TOTAL_HEIGHT), mini_display, 15, scale = 5)
+		master.setup(ip, port, (TOTAL_WIDTH, TOTAL_HEIGHT), mini_display, 15, scale = scal)
 	else:
 		xcoord = int(name[5])
 		ycoord = int(name[7])
