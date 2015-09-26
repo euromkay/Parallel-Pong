@@ -117,10 +117,10 @@ def setup(ip, port, display, total_display, coords = None):
         mode = pygame.NOFRAME
     pygame.init()
     tile = Tile()
-    tile.screen = pygame.display.set_mode( (display['right'] - display['left'], display['bot'] - display['top']), mode, 0)
+    tile.screen = pygame.display.mode_ok( (display['right'] - display['left'], display['bot'] - display['top']), mode, 0)
 
     tile.ball = pygame.image.load( 'assets/ball.png' )
-    print (entity.Ball.LENGTH)
+    
     tile.ball = pygame.transform.smoothscale(tile.ball, (entity.Ball.LENGTH, entity.Ball.LENGTH))
 
     read_pong_settings(display['left'], display['right'], display['bot'], display['top'], tile)
@@ -144,12 +144,12 @@ def setup(ip, port, display, total_display, coords = None):
         tile.paddle = pygame.transform.smoothscale(tile.paddle, (entity.Paddle.WIDTH, entity.Paddle.HEIGHT))
         paddle_rect = tile.paddle.get_rect()
 
-
+    tile.screen.fill((0,0,240))
     pygame.display.flip()
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     try :
-        time.sleep(5)
+        time.sleep(3)
         s.connect((ip, port))
     except :
         print 'Unable to connect'
