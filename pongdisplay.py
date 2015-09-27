@@ -54,7 +54,7 @@ class Board(object):
             self.isEdge = True #will signal to update paddle as well
             self.paddle_index = entity.PADDLE_RIGHT
 
-        self.frame = pygame.FULLSCREEN
+        self.mode = pygame.FULLSCREEN
 
         
 
