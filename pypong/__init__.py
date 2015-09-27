@@ -44,7 +44,7 @@ def line_line_intersect(x1, y1, x2, y2, x3, y3, x4, y4):
 class Game(object):
     hit = None
     
-    def __init__(self, player_left, player_right, config, send):
+    def __init__(self, player_left, player_right, config, send, connections):
         self.player_left = player_left
         self.player_right = player_right
 
@@ -61,15 +61,29 @@ class Game(object):
 
         self.ball = entity.Ball( self.config['ball_velocity'], config['ball_image'] )
         
-        
+        self.setupConnections(connections)
+
         self.bounds = entity.Rect(0, 0, config['screen_size'][0], config['screen_size'][1])
 
         paddle = player_left.paddle
         self.send = send
-        self.send([PADDLE_INIT_TYPE, paddle.velocity, paddle.bounds[0], paddle.bounds[1]])
+        self.send([PADDLE_INIT_TYPE, paddle.velocity, paddle.bounds[0], paddle.bounds[1]], self.allPorts)
         self.reset_game(player_left.paddle, player_right.paddle, self.bounds, random.random() < 0.5)
         self.running = False
 
+    def setupConnections(self, connections):
+        self.allPorts = []
+        self.leftPorts = []
+        self.rightPorts = []
+        max_x = -1
+        for port, (x, y) in connections:
+            if x == 0:
+                self.leftPorts.append(port)
+            if x > max_x:
+                max_x = x
+                del self.rightPorts[:]
+                self.rightPorts.append(port)
+            self.allPorts.append(port)
 
 
     def start(self, ctrls):
@@ -101,14 +115,6 @@ class Game(object):
             while(time.time() < hit['time']):
                 if not self.running:
                     break
-                #for player in players:
-                    #if player.update((hit['ballx'], hit['bally']), bounds):
-                        #print 'ballxbally'
-                        #if (player.paddle.direction != 0):
-                            #print 'paddle was changed'
-                            #return
-                        #self.send(self.getPaddlePacket(player.paddle))
-                #stime.sleep(1/32.)
 
             if not self.running:
                 continue
@@ -172,7 +178,7 @@ class Game(object):
         print 'game ended'
 
     def sendSound(self, sound):
-        self.send([SOUND_TYPE, sound])
+        self.send([SOUND_TYPE, sound], self.allPorts)
 
     def nextEvent(self, paddle_left, paddle_right):
         ball = self.ball.rec
@@ -248,7 +254,7 @@ class Game(object):
         info = [BALL_TYPE, ball.rec.x, ball.rec.y] #0, 1
         info.extend((ball.velocity_vec[0], ball.velocity_vec[1])) #2, 3
         info.append(self.time) #4
-        self.send(info)
+        self.send(info, self.allPorts)
 
     def sendPaddlePacket(self, paddle, byPass = False):
         info = [PADDLE_TYPE]
@@ -257,7 +263,12 @@ class Game(object):
         info.append(paddle.direction)
         info.append(paddle.time)
         print 'sending paddle[' + str(paddle.index) + '] packet : ' + str(paddle.direction)
-        self.send(info)
+        ports = []
+        if(paddle.index == entity.PADDLE_LEFT):
+            ports = self.leftPorts
+        else:
+            ports = self.rightPorts
+        self.send(info, ports)
 
 
     def reset_game(self, paddle_left, paddle_right, bounds, serveLeft=True):

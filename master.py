@@ -12,7 +12,6 @@ player_right = None # simplest way to do it
 running = True
 
 
-connections = []
 server_socket = None
 
 def setup(ip, port, display, mini_display, client_num, scale = 1):
@@ -33,16 +32,21 @@ def setup(ip, port, display, mini_display, client_num, scale = 1):
         'bounce_multiplier': 1.105,
     }
 
+    y = display[0]/mini_display[0]
+    x = display[1]/mini_display[1]
     
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     server_socket.bind((ip, port))
     server_socket.listen(client_num)
 
+    connections = []
     connections.append(server_socket)
+    ports = []
 
     while len(connections) != client_num + 1:
-        findnewConnections(connections, server_socket)        
+        findnewConnections(connections, server_socket, x, y, ports)  
+    connections.remove(server_socket)      
 
     paddle_left  = entity.Paddle(config['paddle_velocity'], config['paddle_image'], config['paddle_bounds'], entity.PADDLE_LEFT)
     paddle_right = entity.Paddle(config['paddle_velocity'], config['paddle_image'], config['paddle_bounds'], entity.PADDLE_RIGHT)
@@ -60,7 +64,7 @@ def setup(ip, port, display, mini_display, client_num, scale = 1):
     pygame.display.init()
     pygame.display.set_mode((200,200))
 
-    game = pypong.Game(player_left, player_right, config, sendHandler)
+    game = pypong.Game(player_left, player_right, config, sendHandler, ports)
 
     #threading.Thread(target = sendConnection, args = [game, connections, server_socket]).start()
 
@@ -74,26 +78,9 @@ def setup(ip, port, display, mini_display, client_num, scale = 1):
     print 'server closed'
 
 
-def sendHandler(info):
-    sendInfo(info)
+def sendHandler(info, connections):
+    sendInfo(info, connections)
     return
-    global ball, paddleLeft, paddleInfo, paddleRight
-    typ = info[0]
-    if typ == pypong.BALL_TYPE:
-        ball_lock.acquire()
-        ball = info
-        ball_lock.release()
-    elif typ == pypong.PADDLE_TYPE:
-        if info[1] == entity.PADDLE_RIGHT:
-            right_lock.acquire()
-            paddleRight = info
-            right_lock.release()
-        else:
-            left_lock.acquire()
-            paddleLeft = info
-            left_lock.release()
-    elif typ == pypong.PADDLE_INIT_TYPE:
-        paddleInfo = info
 
 ball = None
 paddleLeft = None
@@ -104,60 +91,8 @@ ball_lock  = threading.Lock()
 right_lock = threading.Lock()
 left_lock  = threading.Lock()
 
-def sendConnection(game):
-    send = partial(sendInfo)
-    print 'starting to send connection'
-    while not game.running:
-        continue
-
-    threading.Thread(target = ballThread,  args = [send, game]).start()
-    threading.Thread(target = rightThread, args = [send, game]).start()
-    threading.Thread(target = leftThread,  args = [send, game]).start()
-    threading.Thread(target = infoThread,  args = [send, game]).start()
-
-def ballThread(send, game):
-    global ball
-    while game.running:
-        if ball == None:
-            continue
-        ball_lock.acquire()
-        send(ball)
-        ball = None
-        ball_lock.release()
-    print 'ball_thread exited'
-
-def rightThread(send, game):
-    global paddleRight
-    while game.running:
-        if paddleRight == None:
-            continue
-        right_lock.acquire()
-        send(paddleRight)
-        paddleRight = None
-        right_lock.release()
-    print 'right thread exited'
-
-def leftThread(send, game):
-    global paddleLeft
-    while game.running:
-        if paddleLeft == None:
-            continue
-        left_lock.acquire()
-        send(paddleLeft)
-        paddleLeft = None
-        left_lock.release()
-    print 'left thread exited'
-
-def infoThread(send, game):
-    while paddleInfo == None:
-        continue
-    send(paddleInfo)
-
-
-
-
 lock = threading.Lock()
-def sendInfo(info):
+def sendInfo(info, connections):
     lock.acquire()
     if info == None:
         return
@@ -174,15 +109,18 @@ def sendInfo(info):
     lock.release()
 
 
-def findnewConnections(connections, server_socket):
+def findnewConnections(connections, server_socket, x, y, ports):
     read_sockets, write_sockets, error_sockets = select.select(connections,[],[], 0.)
 
     for sock in read_sockets:
         if sock == server_socket:
             sockfd, addr = server_socket.accept()
-            #sock.recv(2)
+            val = int(sockfd.recv(2))
+            x = val % x
+            y = val / y
             connections.append(sockfd)
-            print len(connections)
+            ports.append((sockfd, (x, y)))
+            print len(ports) - 1
 
 
 
@@ -196,7 +134,6 @@ def ctrls(game):
                 break
 
             if event.type == pygame.KEYDOWN:
-                print event.key
                 
                 if event.key == pygame.K_r:
                     player_right.paddle.moveUp()

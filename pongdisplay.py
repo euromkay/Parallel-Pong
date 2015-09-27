@@ -76,7 +76,7 @@ class Board(object):
 
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try :
-            time.sleep(3)
+            time.sleep(2)
             s.connect((self.ip, self.port))
         except :
             print 'Unable to connect'
@@ -85,7 +85,7 @@ class Board(object):
         val = str(self.x+3*self.y)
         if len(val) == 0:
             val = '0' + val
-        #s.send(val)
+        s.send(val)
 
         threading.Thread(target = self.screenDraw).start()
 
@@ -104,7 +104,6 @@ class Board(object):
                 time.sleep(3)
                 pygame.display.quit()
 
-                print 'display is closing'
                 return
             s.send('gotit')
 
