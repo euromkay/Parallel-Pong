@@ -180,6 +180,7 @@ def findnewConnections(connections, server_socket):
     for sock in read_sockets:
         if sock == server_socket:
             sockfd, addr = server_socket.accept()
+            #sock.recv(2)
             connections.append(sockfd)
             print len(connections)
 

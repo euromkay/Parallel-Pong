@@ -22,235 +22,243 @@ TIME = 5
 #class broadcastServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
     #pass
 #class requestHandler(posvec):
-def screenDraw(tile):
-    topEdge = tile.topEdge
-    leftEdge = tile.leftEdge
-    rightEdge = tile.rightEdge
-    botEdge = tile.botEdge
-
-    ball_length = entity.Ball.LENGTH
-
-    ballrect   = tile.ball.get_rect()
-    draw = tile.screen.blit
-    ball = tile.ball
-    isEdge = tile.isEdge
-    if isEdge:
-        paddle_rect  = tile.paddle.get_rect()
-    getTime = time.time
-
-    if tile.paddle_index == entity.PADDLE_RIGHT:
-        paddle_rect.x = rightEdge - (paddle_rect.w + leftEdge)
-    b = True
-    tile.drawing = True
-    while tile.active:
-        #print tile.paddle_direc
-
-        tile.screen.fill( BLACK )
 
 
-        ball_init_x = tile.ball_left
-        ball_init_y = tile.ball_top
-        ball_vel_x = tile.ball_vel_x
-        ball_vel_y = tile.ball_vel_y
-        prev_time = tile.ball_time
+class Board(object):
+    def __init__(self, x, y, x_total, y_total):
+        self.active = True
 
-        curr_time = getTime()
+        self.x = x
+        self.y = y
+        self.x_total = x_total
+        self.y_total = y_total
 
-        ball_leftEdge  = ball_init_x + (ball_vel_x*(curr_time - prev_time))
-        ball_rightEdge = ball_leftEdge + ball_length
+        self.ball_left = 0.0
+        self.ball_top = 0.0
+        self.ball_vel_y = 0.0
+        self.ball_vel_x = 0.0
+        self.ball_time = time.time()
 
-        ball_topEdge = ball_init_y + (ball_vel_y*(curr_time- prev_time))
-        ball_botEdge = ball_topEdge + ball_length
+        self.paddle_top = 0.0
+        self.paddle_direc = 0.0
+        self.paddle_time = self.ball_time
+        self.paddle_vel = 0.0
+        self.paddle_min = 0.0
+        self.paddle_max = 0.0
+
+        if ( x == 0 ):
+            self.isEdge = True #will signal to update paddle as well
+            self.paddle_index = entity.PADDLE_LEFT
+
+        if( x == x_total - 1):
+            self.isEdge = True #will signal to update paddle as well
+            self.paddle_index = entity.PADDLE_RIGHT
+
+        
 
 
-        inWidth = entity.within(leftEdge, ball_leftEdge, rightEdge) or entity.within(leftEdge, ball_rightEdge, rightEdge)
-        inHeight = entity.within(topEdge, ball_topEdge, botEdge) or entity.within(topEdge, ball_botEdge, botEdge)
 
-        if ( inWidth and inHeight):
-            ballrect.x = ball_leftEdge - leftEdge# offset the bounds
-            ballrect.y = ball_topEdge - topEdge
-            draw( ball, ballrect )
+    def start(self):
+        pygame.init()
+        pygame.mouse.set_visible(False)
 
-
-        if isEdge:  
-            paddleTopEdge = tile.paddle_top + (tile.paddle_direc * (curr_time - tile.paddle_time) * tile.paddle_vel)
-            paddleBotEdge = paddleTopEdge + entity.Paddle.HEIGHT
-
-            #paddle trying to go too high up
-            if paddleTopEdge < tile.paddle_min:
-                paddleTopEdge     = tile.paddle_min
-                paddleBotEdge     = paddleTopEdge + entity.Paddle.HEIGHT
-                tile.paddle_direc = 0
-                tile.paddle_top   = tile.paddle_min
-
-            
-            #paddle trying to go too low
-            elif tile.paddle_max < paddleTopEdge:
-                paddleTopEdge = tile.paddle_max
-                paddleBotEdge = paddleTopEdge + entity.Paddle.HEIGHT
-                tile.paddle_direc = 0
-                tile.paddle_top = tile.paddle_max
-
-            if entity.within(topEdge, paddleBotEdge, botEdge) or entity.within(topEdge, paddleTopEdge, botEdge):
-                paddle_rect.y = paddleTopEdge - topEdge
-                draw( tile.paddle, paddle_rect )
-
+        self.screen = pygame.display.set_mode((self.rightEdge - self.leftEdge, self.botEdge - self.topEdge), self.mode, 0)
+        self.screen.fill((0,0, 199)) #blue
         pygame.display.flip()
 
-        #if(tile.data[4] == entity.PADDLE_RIGHT or tile.data[4] == entity.PADDLE_LEFT):
-            #sound.paddle_hit(tile.mixer)
-        #elif(tile.data[4] == entity.WALL):
-            #sound.wall_hit(tile.mixer)
-    tile.drawing = False
+        pygame.mixer.pre_init(frequency=22050, size=-16, channels=2, buffer=2048)
+        pygame.mixer.init()
+        mixer = pygame.mixer
 
 
-def read_pong_settings(left_edge, right_edge, bot_edge, top_edge, tile):
-    tile.leftEdge = left_edge
-    tile.rightEdge = right_edge
-    tile.botEdge = bot_edge
-    tile.topEdge = top_edge
-
-def setup(ip, port, display, total_display, coords = None):
-    mode = pygame.FULLSCREEN
-    if coords != None:
-        os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % coords
-        mode = pygame.NOFRAME
-    pygame.init()
-    tile = Tile()
-    ok_display = pygame.display.mode_ok((display['right'] - display['left'], display['bot'] - display['top']))
-    tile.screen = pygame.display.set_mode( (display['right'] - display['left'], display['bot'] - display['top']), mode, 0)
-
-    tile.ball = pygame.image.load( 'assets/ball.png' )
-    
-    tile.ball = pygame.transform.smoothscale(tile.ball, (entity.Ball.LENGTH, entity.Ball.LENGTH))
-
-    read_pong_settings(display['left'], display['right'], display['bot'], display['top'], tile)
-    pygame.mouse.set_visible(False)
-    pygame.mixer.pre_init(frequency=22050, size=-16, channels=2, buffer=2048)
-    pygame.mixer.init()
-
-    tile.mixer = pygame.mixer
-
-
-    if ( display['right'] == total_display['right'] ):
-        tile.isEdge = True #will signal to update paddle as well
-        tile.paddle_index = entity.PADDLE_RIGHT
-
-    if( display['left'] == total_display['left'] ):
-        tile.isEdge = True #will signal to update paddle as well
-        tile.paddle_index = entity.PADDLE_LEFT
-
-    if (tile.isEdge):
-        tile.paddle = pygame.image.load( 'assets/paddle.png' )
-        tile.paddle = pygame.transform.smoothscale(tile.paddle, (entity.Paddle.WIDTH, entity.Paddle.HEIGHT))
-        paddle_rect = tile.paddle.get_rect()
-
-    tile.screen.fill((0,0, 199)) #red
-    pygame.display.flip()
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-    try :
-        time.sleep(3)
-        s.connect((ip, port))
-    except :
-        print 'Unable to connect'
-        sys.exit()
-
-    threading.Thread(target = screenDraw, args=[tile]).start()
-
-    data_type = -1
-
-    data = ''
-    while tile.active:
-        data += s.recv(BUFFER)
-        if not data:
-            tile.active = False
-            while(tile.drawing):
-                continue
-            
-            tile.screen.fill((149,0,0)) #red
-            pygame.display.flip()
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        try :
             time.sleep(3)
-            pygame.display.quit()
-            pygame.quit()
+            s.connect((self.ip, self.port))
+        except :
+            print 'Unable to connect'
+            sys.exit()
 
-            print 'display is closing'
-            return
-        s.send('gotit')
+        val = str(self.x+3*self.y)
+        if len(val) == 0:
+            val = '0' + val
+        #s.send(val)
 
-        segments = data.split("*")
-        if len(segments) < 2:  #that means the full type hasn't come in yet
-            continue
+        threading.Thread(target = self.screenDraw).start()
 
-        data_type = int(segments[0])
+        data_type = -1
 
-        while len(segments) >= data_type + 1:
+        data = ''
+        while self.active:
+            data += s.recv(BUFFER)
+            if not data:
+                print 'end signal'
+                self.active = False
+                while(self.drawing):
+                    continue
+                
+                self.screen.fill((149,0,0)) #red
+                pygame.display.flip()
+                time.sleep(3)
+                pygame.display.quit()
 
-            if data_type == pypong.BALL_TYPE:
-                tile.ball_left   = float(segments[BALL_X])
-                tile.ball_top    = float(segments[BALL_Y])
-                tile.ball_vel_x  = float(segments[BALL_VX])
-                tile.ball_vel_y  = float(segments[BALL_VY])
-                tile.ball_time   = float(segments[TIME])
-                #print 'initial ball time ' + str(tile.ball_time) 
-            elif data_type == pypong.PADDLE_TYPE:
-                if tile.isEdge and int(segments[1]) == tile.paddle_index:
-                    tile.paddle_top   = float(segments[pypong.P_TOP])
-                    tile.paddle_direc = float(segments[pypong.P_DIREC])
-                    tile.paddle_time  = float(segments[pypong.P_TIME])
-                    #print tile.paddle_direc
-            elif data_type == pypong.PADDLE_INIT_TYPE:
-                tile.paddle_vel = float(segments[1])
-                tile.paddle_min = float(segments[2])
-                tile.paddle_max = float(segments[3])
-                #print 'tile start info: ' + str((tile.paddle_vel, tile.paddle_min, tile.paddle_max))
-            elif data_type == pypong.SOUND_TYPE:
-                sound_type = int(segments[1])
-                if sound_type == pypong.WALL_HIT:
-                    sound.wall_hit(tile.mixer)
-                elif sound_type == pypong.PADDLE_HIT:
-                    sound.paddle_hit(tile.mixer)
-                else:#if sound_type == pypong.WIN:
-                    sound.won_sound(tile.mixer)
-            data = ''
-            for seg in segments[data_type:]:
-                data += seg + '*'
-            data = data[:-1]
+                print 'display is closing'
+                return
+            s.send('gotit')
+
             segments = data.split("*")
-
-            if len(segments) < 2:
-                break
+            if len(segments) < 2:  #that means the full type hasn't come in yet
+                continue
 
             data_type = int(segments[0])
 
+            while len(segments) >= data_type + 1:
+
+                if data_type == pypong.BALL_TYPE:
+                    self.ball_left   = float(segments[BALL_X])
+                    self.ball_top    = float(segments[BALL_Y])
+                    self.ball_vel_x  = float(segments[BALL_VX])
+                    self.ball_vel_y  = float(segments[BALL_VY])
+                    self.ball_time   = float(segments[TIME])
+                    #print 'initial ball time ' + str(tile.ball_time) 
+                elif data_type == pypong.PADDLE_TYPE:
+                    if self.isEdge and int(segments[1]) == self.paddle_index:
+                        self.paddle_top   = float(segments[pypong.P_TOP])
+                        self.paddle_direc = float(segments[pypong.P_DIREC])
+                        self.paddle_time  = float(segments[pypong.P_TIME])
+                        #print tile.paddle_direc
+                elif data_type == pypong.PADDLE_INIT_TYPE:
+                    self.paddle_vel = float(segments[1])
+                    self.paddle_min = float(segments[2])
+                    self.paddle_max = float(segments[3])
+                    #print 'tile start info: ' + str((tile.paddle_vel, tile.paddle_min, tile.paddle_max))
+                elif data_type == pypong.SOUND_TYPE:
+                    sound_type = int(segments[1])
+                    if sound_type == pypong.WALL_HIT:
+                        sound.wall_hit(mixer)
+                    elif sound_type == pypong.PADDLE_HIT:
+                        sound.paddle_hit(mixer)
+                    else:#if sound_type == pypong.WIN:
+                        sound.won_sound(mixer)
+                data = ''
+                for seg in segments[data_type:]:
+                    data += seg + '*'
+                data = data[:-1]
+                segments = data.split("*")
+
+                if len(segments) < 2:
+                    break
+
+                data_type = int(segments[0])
+
+    def screenDraw(self):
+        topEdge = self.topEdge
+        leftEdge = self.leftEdge
+        rightEdge = self.rightEdge
+        botEdge = self.botEdge
+
+        ball_length = entity.Ball.LENGTH
+
+        draw = self.screen.blit
+        clear = self.screen.fill
+        flip = pygame.display.flip
 
 
+        ball = pygame.image.load( 'assets/ball.png' )
+        ball = pygame.transform.smoothscale(ball, (entity.Ball.LENGTH, entity.Ball.LENGTH))
+        ballrect = ball.get_rect()
 
-class Tile(object):
-    isEdge = False
-    ball = None
-    screen = None
-    botEdge = 0
-    topEdge = 0
-    rightEdge = 0
-    leftEdge = 0
-    boundsy = (0, 0)
-    left_edge_node = ''
-    right_edge_node = ''
-    paddle_index = 0
-    mixer = None
-    active = True
-    ball_left = 0.0
-    ball_top = 0.0
-    ball_vel_y = 0.0
-    ball_vel_x = 0.0
-    ball_time = time.time()
-    paddle_top = 200
-    paddle_direc = 0
-    paddle_time = time.time()
-    paddle_vel = 0.0
-    paddle_min = -5000
-    paddle_max = sys.float_info.max
-    sounds = []
-        
+        isEdge = self.isEdge
+        if isEdge:
+            paddle = pygame.image.load( 'assets/paddle.png' )
+            paddle = pygame.transform.smoothscale(paddle, (entity.Paddle.WIDTH, entity.Paddle.HEIGHT))
+            paddle_rect  = paddle.get_rect()
+
+        getTime = time.time
+
+        if self.paddle_index == entity.PADDLE_RIGHT:
+            paddle_rect.x = rightEdge - (paddle_rect.w + leftEdge)
+        b = True #what is this
+        self.drawing = True
+        while self.active:
+            clear(BLACK)
+
+
+            ball_init_x = self.ball_left
+            ball_init_y = self.ball_top
+            ball_vel_x = self.ball_vel_x
+            ball_vel_y = self.ball_vel_y
+            prev_time = self.ball_time
+
+            curr_time = getTime()
+
+            ball_leftEdge  = ball_init_x + (ball_vel_x*(curr_time - prev_time))
+            ball_rightEdge = ball_leftEdge + ball_length
+
+            ball_topEdge = ball_init_y + (ball_vel_y*(curr_time- prev_time))
+            ball_botEdge = ball_topEdge + ball_length
+
+
+            inWidth = entity.within(leftEdge, ball_leftEdge, rightEdge) or entity.within(leftEdge, ball_rightEdge, rightEdge)
+            inHeight = entity.within(topEdge, ball_topEdge, botEdge) or entity.within(topEdge, ball_botEdge, botEdge)
+
+            if ( inWidth and inHeight):
+                ballrect.x = ball_leftEdge - leftEdge# offset the bounds
+                ballrect.y = ball_topEdge - topEdge
+                draw( ball, ballrect )
+
+
+            if isEdge:  
+                paddleTopEdge = self.paddle_top + (self.paddle_direc * (curr_time - self.paddle_time) * self.paddle_vel)
+                paddleBotEdge = paddleTopEdge + entity.Paddle.HEIGHT
+
+                #paddle trying to go too high up
+                if paddleTopEdge < self.paddle_min:
+                    paddleTopEdge     = self.paddle_min
+                    paddleBotEdge     = paddleTopEdge + entity.Paddle.HEIGHT
+                    self.paddle_direc = 0
+                    self.paddle_top   = self.paddle_min
+
+                
+                #paddle trying to go too low
+                elif self.paddle_max < paddleTopEdge:
+                    paddleTopEdge     = self.paddle_max
+                    paddleBotEdge     = paddleTopEdge + entity.Paddle.HEIGHT
+                    self.paddle_direc = 0
+                    self.paddle_top   = self.paddle_max
+
+                if entity.within(topEdge, paddleBotEdge, botEdge) or entity.within(topEdge, paddleTopEdge, botEdge):
+                    paddle_rect.y = paddleTopEdge - topEdge
+                    draw( paddle, paddle_rect )
+
+            flip()
+
+            #if(tile.data[4] == entity.PADDLE_RIGHT or tile.data[4] == entity.PADDLE_LEFT):
+                #sound.paddle_hit(tile.mixer)
+            #elif(tile.data[4] == entity.WALL):
+                #sound.wall_hit(tile.mixer)
+        self.drawing = False
+
+
+    def setIP(self, ip, port):
+        self.ip = ip
+        self.port = port
+            
+
+    def setCoords(self):
+
+        os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (self.leftEdge + 10, self.topEdge + 10)
+        self.mode = pygame.NOFRAME
+
+    def setDisplay(self, display):
+        width = display[0]
+        height = display[1]
+
+        border = 0
+
+        self.topEdge = self.y * (height + border)
+        self.botEdge = self.topEdge + height
+
+        self.leftEdge  = self.x * (width + border)
+        self.rightEdge = self.leftEdge + width
         

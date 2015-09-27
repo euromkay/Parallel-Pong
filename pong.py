@@ -3,9 +3,6 @@ import master
 import pongdisplay
 import sys, platform
 
-totalwidth = 900
-totalheight = 600
-
 def toBounds(left, right, top, bot):
 	disp = {}
 	disp['left'] = left
@@ -22,6 +19,9 @@ def disp(ip, port, section, start):
 local = (len(sys.argv) == 3)
 
 if local:
+
+	totalwidth = 900
+	totalheight = 600
 
 	ip = "0.0.0.0"
 	port = 5000
@@ -41,9 +41,12 @@ if local:
 			top = height * w
 			bot = top + height
 
-			t = disp(ip, port, toBounds(left, right ,top, bot), (left,top) )
+			b = pongdisplay.Board(w, h, rows, cols)
+			b.setIP(ip, port)
+			b.setDisplay((width, height))
+			b.setCoords()
+			Process(target = b.start).start()
 			i += 1
-			t.start()
 
 	
 	big_display = (totalwidth, totalheight)
