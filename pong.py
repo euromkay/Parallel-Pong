@@ -81,4 +81,10 @@ else:
 
 		bounds = toBounds(left, right, top, bot)
 		total_display = toBounds(0, TOTAL_WIDTH, 0, TOTAL_HEIGHT)
-		pongdisplay.setup(ip, port, bounds, total_display, None)
+
+
+		b = pongdisplay.Board(xcoord, ycoord, ROWS, COLS)
+		b.setIP(ip, port)
+		b.setDisplay(mini_display)
+
+		b.start()
