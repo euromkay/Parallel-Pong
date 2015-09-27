@@ -46,6 +46,7 @@ class Board(object):
         self.paddle_min = 0.0
         self.paddle_max = 0.0
 
+        self.isEdge = False
         if ( x == 0 ):
             self.isEdge = True #will signal to update paddle as well
             self.paddle_index = entity.PADDLE_LEFT
@@ -94,7 +95,6 @@ class Board(object):
         while self.active:
             data += s.recv(BUFFER)
             if not data:
-                print 'end signal'
                 self.active = False
                 while(self.drawing):
                     continue
@@ -175,11 +175,12 @@ class Board(object):
             paddle = pygame.image.load( 'assets/paddle.png' )
             paddle = pygame.transform.smoothscale(paddle, (entity.Paddle.WIDTH, entity.Paddle.HEIGHT))
             paddle_rect  = paddle.get_rect()
+            if self.paddle_index == entity.PADDLE_RIGHT:
+                paddle_rect.x = rightEdge - (paddle_rect.w + leftEdge) 
 
         getTime = time.time
 
-        if self.paddle_index == entity.PADDLE_RIGHT:
-            paddle_rect.x = rightEdge - (paddle_rect.w + leftEdge)
+        
         b = True #what is this
         self.drawing = True
         while self.active:

@@ -71,18 +71,6 @@ else:
 		xcoord = int(name[5])
 		ycoord = int(name[7])
 
-		width = TOTAL_WIDTH/COLS
-		left = width * xcoord
-		right = left + width
-
-		height = TOTAL_HEIGHT/ROWS
-		top = height * ycoord
-		bot = top + height
-
-		bounds = toBounds(left, right, top, bot)
-		total_display = toBounds(0, TOTAL_WIDTH, 0, TOTAL_HEIGHT)
-
-
 		b = pongdisplay.Board(xcoord, ycoord, COLS, ROWS)
 		b.setIP(ip, port)
 		b.setDisplay(mini_display)
