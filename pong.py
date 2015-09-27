@@ -83,7 +83,7 @@ else:
 		total_display = toBounds(0, TOTAL_WIDTH, 0, TOTAL_HEIGHT)
 
 
-		b = pongdisplay.Board(xcoord, ycoord, ROWS, COLS)
+		b = pongdisplay.Board(ycoord, xcoord, ROWS, COLS)
 		b.setIP(ip, port)
 		b.setDisplay(mini_display)
 
