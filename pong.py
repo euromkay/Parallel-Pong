@@ -28,7 +28,7 @@ if local:
 
 	cols  = int(sys.argv[1])
 	rows  = int(sys.argv[2])
-	scale = 1
+	scale = 5
 	i = 0
 	t = None
 	for w in range(rows):
