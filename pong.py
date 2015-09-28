@@ -26,24 +26,22 @@ if local:
 	ip = "0.0.0.0"
 	port = 5000
 
-	rows  = int(sys.argv[1])
-	cols  = int(sys.argv[2])
-	scale = 4
+	cols  = int(sys.argv[1])
+	rows  = int(sys.argv[2])
+	scale = 1
 	i = 0
 	t = None
-	for w in reversed(range(rows)):
+	for w in range(rows):
 		for h in range(cols):
-			width = totalwidth/cols
-			left = width * h
-			right = left + width
 
-			height = totalheight/rows
-			top = height * w
-			bot = top + height
-
-			b = pongdisplay.Board(w, h, rows, cols)
+			b = pongdisplay.Board(w, h, cols, rows)
 			b.setIP(ip, port)
+
+			width = totalwidth/cols
+			height = totalheight/rows
+
 			b.setDisplay((width, height))
+
 			b.setCoords()
 			Process(target = b.start).start()
 			i += 1

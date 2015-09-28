@@ -120,7 +120,7 @@ def findnewConnections(connections, server_socket, x, y, ports):
             y = val / y
             connections.append(sockfd)
             ports.append((sockfd, (x, y)))
-            print len(ports) - 1
+            print len(ports)
 
 
 

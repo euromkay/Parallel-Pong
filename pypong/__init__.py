@@ -79,11 +79,16 @@ class Game(object):
         for port, (x, y) in connections:
             if x == 0:
                 self.leftPorts.append(port)
-            if x > max_x:
+
+            if x >= max_x:
                 max_x = x
-                del self.rightPorts[:]
+                rightPorts = []
+            if x == max_x:
                 self.rightPorts.append(port)
+
             self.allPorts.append(port)
+        print len(self.rightPorts)
+        print len(self.leftPorts)
 
 
     def start(self, ctrls):
@@ -262,7 +267,6 @@ class Game(object):
         info.append(paddle.rec.top)
         info.append(paddle.direction)
         info.append(paddle.time)
-        print 'sending paddle[' + str(paddle.index) + '] packet : ' + str(paddle.direction)
         ports = []
         if(paddle.index == entity.PADDLE_LEFT):
             ports = self.leftPorts

@@ -249,7 +249,7 @@ class Board(object):
 
     def setCoords(self):
 
-        os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (self.leftEdge + 10, self.topEdge + 10)
+        os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (self.leftEdge + 10*(self.x+1), self.topEdge + 20*(self.y + 1))
         self.mode = pygame.NOFRAME
 
     def setDisplay(self, display):

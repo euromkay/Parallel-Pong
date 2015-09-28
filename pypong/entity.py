@@ -5,7 +5,7 @@ PADDLE_LEFT = 1
 PADDLE_RIGHT = 2
 WALL = 3
 
-SCALE = 2
+SCALE = 1
 
 #from PIL import Image
 def rect_from_image(path):
