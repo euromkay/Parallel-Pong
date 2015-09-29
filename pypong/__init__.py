@@ -77,13 +77,14 @@ class Game(object):
         self.rightPorts = []
         max_x = -1
         for port, (x, y) in connections:
+            print (x,y)
+            if x > max_x:
+                max_x = x
+                self.rightPorts = []
+
             if x == 0:
                 self.leftPorts.append(port)
-
-            if x >= max_x:
-                max_x = x
-                rightPorts = []
-            if x == max_x:
+            elif x == max_x:
                 self.rightPorts.append(port)
 
             self.allPorts.append(port)

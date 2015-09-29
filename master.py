@@ -44,6 +44,8 @@ def setup(ip, port, display, mini_display, client_num, scale = 1):
     connections.append(server_socket)
     ports = []
 
+    print "x and y are"
+    print (x,y)
     while len(connections) != client_num + 1:
         findnewConnections(connections, server_socket, x, y, ports)  
     connections.remove(server_socket)      
@@ -109,18 +111,19 @@ def sendInfo(info, connections):
     lock.release()
 
 
-def findnewConnections(connections, server_socket, x, y, ports):
+def findnewConnections(connections, server_socket, _x, _y, ports):
     read_sockets, write_sockets, error_sockets = select.select(connections,[],[], 0.)
 
     for sock in read_sockets:
         if sock == server_socket:
             sockfd, addr = server_socket.accept()
             val = int(sockfd.recv(2))
-            x = val % x
-            y = val / y
+            x = val % _x
+            y = val / _x
             connections.append(sockfd)
+            #print (x,y)
             ports.append((sockfd, (x, y)))
-            print len(ports)
+    #print len(ports)
 
 
 

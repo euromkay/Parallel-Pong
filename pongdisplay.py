@@ -82,9 +82,10 @@ class Board(object):
             print 'Unable to connect'
             sys.exit()
 
-        val = str(self.x+3*self.y)
-        if len(val) == 0:
+        val = str(self.x + 5*self.y )
+        if len(val) == 1:
             val = '0' + val
+        #print val
         s.send(val)
 
         threading.Thread(target = self.screenDraw).start()
