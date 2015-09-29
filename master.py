@@ -32,8 +32,8 @@ def setup(ip, port, display, mini_display, client_num, scale = 1):
         'bounce_multiplier': 1.105,
     }
 
-    y = display[0]/mini_display[0]
-    x = display[1]/mini_display[1]
+    x = display[0]/mini_display[0]
+    y = display[1]/mini_display[1]
     
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -44,8 +44,6 @@ def setup(ip, port, display, mini_display, client_num, scale = 1):
     connections.append(server_socket)
     ports = []
 
-    print "x and y are"
-    print (x,y)
     while len(connections) != client_num + 1:
         findnewConnections(connections, server_socket, x, y, ports)  
     connections.remove(server_socket)      
@@ -53,7 +51,7 @@ def setup(ip, port, display, mini_display, client_num, scale = 1):
     paddle_left  = entity.Paddle(config['paddle_velocity'], config['paddle_image'], config['paddle_bounds'], entity.PADDLE_LEFT)
     paddle_right = entity.Paddle(config['paddle_velocity'], config['paddle_image'], config['paddle_bounds'], entity.PADDLE_RIGHT)
 
-    ai = False
+    ai = True
     # Prepare game
     if(ai):
         player_right = BasicAIPlayer(paddle_right)#None, 'up', 'down')
@@ -78,6 +76,23 @@ def setup(ip, port, display, mini_display, client_num, scale = 1):
 
     server_socket.close()
     print 'server closed'
+
+
+def findnewConnections(connections, server_socket, _x, _y, ports):
+    read_sockets, write_sockets, error_sockets = select.select(connections,[],[], 0.)
+
+    for sock in read_sockets:
+        if sock == server_socket:
+            sockfd, addr = server_socket.accept()
+            val = int(sockfd.recv(2))
+            x = val % _x
+            y = val / _x
+            connections.append(sockfd)
+            print (x,y)
+            ports.append((sockfd, (x, y)))
+    #print len(ports)
+
+
 
 
 def sendHandler(info, connections):
@@ -109,23 +124,6 @@ def sendInfo(info, connections):
             sock.send(coordinates)
             sock.recv(16)
     lock.release()
-
-
-def findnewConnections(connections, server_socket, _x, _y, ports):
-    read_sockets, write_sockets, error_sockets = select.select(connections,[],[], 0.)
-
-    for sock in read_sockets:
-        if sock == server_socket:
-            sockfd, addr = server_socket.accept()
-            val = int(sockfd.recv(2))
-            x = val % _x
-            y = val / _x
-            connections.append(sockfd)
-            #print (x,y)
-            ports.append((sockfd, (x, y)))
-    #print len(ports)
-
-
 
 def ctrls(game):
     global player_left, player_right       

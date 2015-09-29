@@ -31,8 +31,8 @@ if local:
 	scale = 5
 	i = 0
 	t = None
-	for w in range(rows):
-		for h in range(cols):
+	for h in range(rows):
+		for w in range(cols):
 
 			b = pongdisplay.Board(w, h, cols, rows)
 			b.setIP(ip, port)
@@ -40,7 +40,7 @@ if local:
 			width = totalwidth/cols
 			height = totalheight/rows
 
-			b.setDisplay((width, height))
+			b.setDisplay(width, height)
 
 			b.setCoords()
 			Process(target = b.start).start()
@@ -71,6 +71,6 @@ else:
 
 		b = pongdisplay.Board(xcoord, ycoord, COLS, ROWS)
 		b.setIP(ip, port)
-		b.setDisplay(mini_display)
+		b.setDisplay(1920, 1200)
 
 		b.start()

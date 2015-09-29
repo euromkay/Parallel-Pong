@@ -76,16 +76,15 @@ class Board(object):
 
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try :
-            time.sleep(2)
+            time.sleep(3)
             s.connect((self.ip, self.port))
         except :
             print 'Unable to connect'
             sys.exit()
 
-        val = str(self.x + 5*self.y )
+        val = str(self.x + self.x_total*self.y )
         if len(val) == 1:
             val = '0' + val
-        #print val
         s.send(val)
 
         threading.Thread(target = self.screenDraw).start()
@@ -253,10 +252,7 @@ class Board(object):
         os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (self.leftEdge + 10*(self.x+1), self.topEdge + 20*(self.y + 1))
         self.mode = pygame.NOFRAME
 
-    def setDisplay(self, display):
-        width = display[0]
-        height = display[1]
-
+    def setDisplay(self, width, height):
         border = 0
 
         self.topEdge = self.y * (height + border)
