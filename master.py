@@ -51,7 +51,7 @@ def setup(ip, port, display, mini_display, client_num, scale = 1):
     paddle_left  = entity.Paddle(config['paddle_velocity'], config['paddle_image'], config['paddle_bounds'], entity.PADDLE_LEFT)
     paddle_right = entity.Paddle(config['paddle_velocity'], config['paddle_image'], config['paddle_bounds'], entity.PADDLE_RIGHT)
 
-    ai = True
+    ai = False
     # Prepare game
     if(ai):
         player_right = BasicAIPlayer(paddle_right)#None, 'up', 'down')
