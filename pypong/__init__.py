@@ -116,72 +116,75 @@ class Game(object):
 
 
         while self.running:
-            self.hit = self.nextEvent(paddle_left, paddle_right)
-            hit = self.hit
-            
+            try:
+                self.hit = self.nextEvent(paddle_left, paddle_right)
+                hit = self.hit
+                
 
-            while(time.time() < hit['time']):
+                while(time.time() < hit['time']):
+                    if not self.running:
+                        break
+
                 if not self.running:
-                    break
+                    continue
 
-            if not self.running:
-                continue
-
-            ball.hit_flag = hit['type']
-            if hit['type'] == entity.WALL:
-                self.sendSound(WALL_HIT)
-                ball.x = hit['ballx']
-                ball.y = hit['bally']
-                velocity[1] *= -1
-
-
-
-            else:
-                paddle = None
-                paddle_obj = None
-                playerSide = None
-                playerNotSide = None
-                direc = 1.0
-                if hit['type'] == entity.PADDLE_LEFT:
-                    paddle = paddle_left.rec
-                    paddle_obj = paddle_left
-
-                    playerSide = self.player_left
-                    playerNotSide = self.player_right
-                else:
-                    paddle = paddle_right.rec
-                    paddle_obj = paddle_right
-
-                    playerSide = self.player_right
-                    playerNotSide = self.player_left
-                    direc = -1.0
-                paddle_obj.update(paddle_obj.direction)
-
-                # its a paddle hit
-                if within(paddle.top, hit['bally'], paddle.bottom) or within(paddle.top, hit['bally'] + paddle.height, paddle.bottom):
-                    self.sendSound(PADDLE_HIT)
+                ball.hit_flag = hit['type']
+                if hit['type'] == entity.WALL:
+                    self.sendSound(WALL_HIT)
                     ball.x = hit['ballx']
                     ball.y = hit['bally']
-
-                    new_velocity = paddle_obj.calculate_bounce(min(1,max(0,(ball.centery - paddle.y)/float(paddle.height))))
-                    self.ball.velocity = min(self.config['ball_velocity_max'], self.ball.velocity * self.config['bounce_multiplier'])
-                    velocity[0] = new_velocity[0] * self.ball.velocity * direc
-                    velocity[1] = new_velocity[1] * self.ball.velocity
-
-                    playerSide.hit() #really for purposes of the robot so it can hit
-                else: #miss
-                    self.sendSound(WIN)
-                    print 'missed ball'
-                    playerSide.lost()
-                    playerNotSide.won()
-
-                    time.sleep(2)
-                    hit['time'] = time.time()
-                    self.reset_game(paddle_left, paddle_right, self.bounds, playerSide == self.player_left)
+                    velocity[1] *= -1
 
 
-            self.time = hit['time']
-            self.sendBallPacket()
+
+                else:
+                    paddle = None
+                    paddle_obj = None
+                    playerSide = None
+                    playerNotSide = None
+                    direc = 1.0
+                    if hit['type'] == entity.PADDLE_LEFT:
+                        paddle = paddle_left.rec
+                        paddle_obj = paddle_left
+
+                        playerSide = self.player_left
+                        playerNotSide = self.player_right
+                    else:
+                        paddle = paddle_right.rec
+                        paddle_obj = paddle_right
+
+                        playerSide = self.player_right
+                        playerNotSide = self.player_left
+                        direc = -1.0
+                    paddle_obj.update(paddle_obj.direction)
+
+                    # its a paddle hit
+                    if within(paddle.top, hit['bally'], paddle.bottom) or within(paddle.top, hit['bally'] + paddle.height, paddle.bottom):
+                        self.sendSound(PADDLE_HIT)
+                        ball.x = hit['ballx']
+                        ball.y = hit['bally']
+
+                        new_velocity = paddle_obj.calculate_bounce(min(1,max(0,(ball.centery - paddle.y)/float(paddle.height))))
+                        self.ball.velocity = min(self.config['ball_velocity_max'], self.ball.velocity * self.config['bounce_multiplier'])
+                        velocity[0] = new_velocity[0] * self.ball.velocity * direc
+                        velocity[1] = new_velocity[1] * self.ball.velocity
+
+                        playerSide.hit() #really for purposes of the robot so it can hit
+                    else: #miss
+                        self.sendSound(WIN)
+                        print 'missed ball'
+                        playerSide.lost()
+                        playerNotSide.won()
+
+                        time.sleep(2)
+                        hit['time'] = time.time()
+                        self.reset_game(paddle_left, paddle_right, self.bounds, playerSide == self.player_left)
+
+                self.time = hit['time']
+                self.sendBallPacket()
+            except KeyboardInterrupt:
+                self.running = False
+
 
         print 'game ended'
 
